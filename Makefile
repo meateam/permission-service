@@ -19,7 +19,7 @@ run: build
 deps:
 		go get -u github.com/golang/protobuf/protoc-gen-go
 build-app:
-		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -ldflags '-extldflags "-static"' -o $(BINARY_NAME) -v
+		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags '-extldflags "-static"' -o $(BINARY_NAME) -v
 build-proto:
 		rm -f proto/*.pb.go
 		protoc -I proto/ proto/*.proto --go_out=plugins=grpc:./proto

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"net"
 	"strings"
 	"time"
@@ -11,21 +12,30 @@ import (
 	pb "github.com/meateam/permission-service/proto"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 const (
-	configPort                 = "port"
-	configHealthCheckInterval  = "health_check_interval"
-	configElasticAPMIgnoreURLS = "elastic_apm_ignore_urls"
+	configPort                         = "port"
+	configHealthCheckInterval          = "health_check_interval"
+	configMongoConnectionString        = "mongo_host"
+	configMongoClientConnectionTimeout = "mongo_client_connection_timeout"
+	configMongoClientPingTimeout       = "mongo_client_ping_timeout"
+	configElasticAPMIgnoreURLS         = "elastic_apm_ignore_urls"
 )
 
 func init() {
 	viper.SetDefault(configPort, "8080")
 	viper.SetDefault(configHealthCheckInterval, 3)
 	viper.SetDefault(configElasticAPMIgnoreURLS, "/grpc.health.v1.Health/Check")
+	viper.SetDefault(configMongoConnectionString, "mongodb://localhost:27017")
+	viper.SetDefault(configMongoClientConnectionTimeout, 10)
+	viper.SetDefault(configMongoClientPingTimeout, 10)
 	viper.AutomaticEnv()
 }
 
@@ -75,7 +85,32 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 		logger = ilogger.NewLogger()
 	}
 
-	// Connect to mongodb.
+	// Create mongodb client.
+	connectionString := viper.GetString(configMongoConnectionString)
+	mongoOptions := options.Client().ApplyURI(connectionString)
+	mongoClient, err := mongo.NewClient(mongoOptions)
+	if err != nil {
+		logger.Fatalf("failed creating mongodb client with connection string %s: %v", connectionString, err.Error())
+	}
+
+	// Connect client to mongodb.
+	mongoClientConnectionTimout := viper.GetDuration(configMongoClientConnectionTimeout)
+	connectionTimeoutCtx, cancelConn := context.WithTimeout(context.TODO(), mongoClientConnectionTimout*time.Second)
+	defer cancelConn()
+	err = mongoClient.Connect(connectionTimeoutCtx)
+	if err != nil {
+		logger.Fatalf("failed connecting to mongodb with connection string %s: %v", connectionString, err.Error())
+	}
+
+	// Check the connection.
+	mongoClientPingTimeout := viper.GetDuration(configMongoClientPingTimeout)
+	pingTimeoutCtx, cancelPing := context.WithTimeout(context.TODO(), mongoClientPingTimeout*time.Second)
+	defer cancelPing()
+	err = mongoClient.Ping(pingTimeoutCtx, readpref.Primary())
+	if err != nil {
+		logger.Fatalf("failed pinging to mongodb with connection string %s: %v", connectionString, err.Error())
+	}
+	logger.Infof("connected to mongodb with connection string %s", connectionString)
 
 	// Set up grpc server opts with logger interceptor.
 	serverOpts := append(
@@ -89,7 +124,7 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 	)
 
 	// Create a download service and register it on the grpc server.
-	permissionService := permission.NewService(nil, logger)
+	permissionService := permission.NewService(mongoClient, logger)
 	pb.RegisterPermissionServer(grpcServer, permissionService)
 
 	// Create a health server and register it on the grpc server.
@@ -144,8 +179,9 @@ func serverLoggerInterceptor(logger *logrus.Logger) []grpc.ServerOption {
 // healthCheckWorker is running an infinite loop that sets the serving status once
 // in s.healthCheckInterval seconds.
 func (s PermissionServer) healthCheckWorker(healthServer *health.Server) {
+	mongoClientPingTimeout := viper.GetDuration(configMongoClientPingTimeout)
 	for {
-		if s.permissionService.HealthCheck() {
+		if s.permissionService.HealthCheck(mongoClientPingTimeout * time.Second) {
 			healthServer.SetServingStatus("", grpc_health_v1.HealthCheckResponse_SERVING)
 		} else {
 			healthServer.SetServingStatus("", grpc_health_v1.HealthCheckResponse_NOT_SERVING)
