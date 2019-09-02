@@ -3,5 +3,21 @@ syntax = "proto3";
 package permission;
 
 service Permission {
-	
+	rpc CreatePermission(CreatePermissionRequest) returns (CreatePermissionResponse) {}
+}
+
+message CreatePermissionRequest {
+	// The ID of the file which is being permitted.
+	string fileID = 1;
+
+	// The ID of the user that's given the permission. 
+	string userID = 2;
+
+	// The children of the file which is being permitted to inherit the permission.
+	repeated string children = 3;	
+}
+
+message CreatePermissionResponse {
+	// The ID of the permission that's been created.
+	string id = 1;
 }

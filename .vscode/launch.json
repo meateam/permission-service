@@ -13,6 +13,7 @@
 			"env": {
 				"PORT": "8087",
 				"HOST_NAME": "permission-service",
+				"MONGO_HOST": "mongodb://localhost:27017/permission",
 				"ELASTICSEARCH_URL": "http://localhost:9200",
 				"LOG_INDEX": "kdrive",
 				"LOG_LEVEL": "debug",

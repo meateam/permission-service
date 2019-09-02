@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -33,7 +34,7 @@ func init() {
 	viper.SetDefault(configPort, "8080")
 	viper.SetDefault(configHealthCheckInterval, 3)
 	viper.SetDefault(configElasticAPMIgnoreURLS, "/grpc.health.v1.Health/Check")
-	viper.SetDefault(configMongoConnectionString, "mongodb://localhost:27017")
+	viper.SetDefault(configMongoConnectionString, "mongodb://localhost:27017/permission")
 	viper.SetDefault(configMongoClientConnectionTimeout, 10)
 	viper.SetDefault(configMongoClientPingTimeout, 10)
 	viper.AutomaticEnv()
@@ -90,7 +91,7 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 	mongoOptions := options.Client().ApplyURI(connectionString)
 	mongoClient, err := mongo.NewClient(mongoOptions)
 	if err != nil {
-		logger.Fatalf("failed creating mongodb client with connection string %s: %v", connectionString, err.Error())
+		logger.Fatalf("failed creating mongodb client with connection string %s: %v", connectionString, err)
 	}
 
 	// Connect client to mongodb.
@@ -99,7 +100,7 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 	defer cancelConn()
 	err = mongoClient.Connect(connectionTimeoutCtx)
 	if err != nil {
-		logger.Fatalf("failed connecting to mongodb with connection string %s: %v", connectionString, err.Error())
+		logger.Fatalf("failed connecting to mongodb with connection string %s: %v", connectionString, err)
 	}
 
 	// Check the connection.
@@ -108,7 +109,7 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 	defer cancelPing()
 	err = mongoClient.Ping(pingTimeoutCtx, readpref.Primary())
 	if err != nil {
-		logger.Fatalf("failed pinging to mongodb with connection string %s: %v", connectionString, err.Error())
+		logger.Fatalf("failed pinging to mongodb with connection string %s: %v", connectionString, err)
 	}
 	logger.Infof("connected to mongodb with connection string %s", connectionString)
 
@@ -124,7 +125,11 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 	)
 
 	// Create a download service and register it on the grpc server.
-	permissionService := permission.NewService(mongoClient, logger)
+	connString, err := connstring.Parse(connectionString)
+	if err != nil {
+		logger.Fatalf("failed parsing connection string %s: %v", connectionString, err.Error())
+	}
+	permissionService := permission.NewService(mongoClient.Database(connString.Database), logger)
 	pb.RegisterPermissionServer(grpcServer, permissionService)
 
 	// Create a health server and register it on the grpc server.
