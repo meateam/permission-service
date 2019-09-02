@@ -4,20 +4,40 @@ package permission;
 
 service Permission {
 	rpc CreatePermission(CreatePermissionRequest) returns (CreatePermissionResponse) {}
+	rpc GetPermission(GetPermissionRequest) returns (PermissionObject) {}
 }
 
 message CreatePermissionRequest {
 	// The ID of the file which is being permitted.
 	string fileID = 1;
 
-	// The ID of the user that's given the permission. 
+	// The ID of the user that's given the permission.
 	string userID = 2;
 
 	// The children of the file which is being permitted to inherit the permission.
-	repeated string children = 3;	
+	repeated string children = 3;
 }
 
 message CreatePermissionResponse {
 	// The ID of the permission that's been created.
 	string id = 1;
+}
+
+message GetPermissionRequest {
+	// The ID of the permission to get.
+	string id = 1;
+}
+
+message PermissionObject {
+	// The ID of the permission.
+	string id = 1;
+
+	// The ID of the file which is being pemitted.
+	string fileID = 2;
+
+	// The ID of the user that's given the permission.
+	string userID = 3;
+
+	// The ID of the file that this permission was inherited from.
+	string inherited = 4;
 }
