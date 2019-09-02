@@ -5,6 +5,7 @@ package permission;
 service Permission {
 	rpc CreatePermission(CreatePermissionRequest) returns (CreatePermissionResponse) {}
 	rpc GetPermission(GetPermissionRequest) returns (PermissionObject) {}
+	rpc DeletePermission(DeletePermissionRequest) returns (PermissionObject) {}
 }
 
 message CreatePermissionRequest {
@@ -25,6 +26,11 @@ message CreatePermissionResponse {
 
 message GetPermissionRequest {
 	// The ID of the permission to get.
+	string id = 1;
+}
+
+message DeletePermissionRequest {
+	// The ID of the permission to delete.
 	string id = 1;
 }
 
