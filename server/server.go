@@ -129,7 +129,13 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 	if err != nil {
 		logger.Fatalf("failed parsing connection string %s: %v", connectionString, err.Error())
 	}
-	permissionService := permission.NewService(mongoClient.Database(connString.Database), logger)
+
+	mongoStore, err := permission.NewMongoStore(mongoClient.Database(connString.Database))
+	if err != nil {
+		logger.Fatalf("failed creating mongo store: %v", err)
+	}
+
+	permissionService := permission.NewService(mongoStore, logger)
 	pb.RegisterPermissionServer(grpcServer, permissionService)
 
 	// Create a health server and register it on the grpc server.
@@ -150,7 +156,7 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 	return permissionServer
 }
 
-// serverLoggerInterceptor configures the logger interceptor for the download server.
+// serverLoggerInterceptor configures the logger interceptor for the permission server.
 func serverLoggerInterceptor(logger *logrus.Logger) []grpc.ServerOption {
 	// Create new logrus entry for logger interceptor.
 	logrusEntry := logrus.NewEntry(logger)

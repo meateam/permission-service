@@ -15,8 +15,8 @@ message CreatePermissionRequest {
 	// The ID of the user that's given the permission.
 	string userID = 2;
 
-	// The children of the file which is being permitted to inherit the permission.
-	repeated string children = 3;
+	// The inheritors of the file which is being permitted to inherit the permission.
+	repeated string inheritors = 3;
 }
 
 message CreatePermissionResponse {
