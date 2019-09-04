@@ -47,7 +47,7 @@ type PermissionServer struct {
 	logger              *logrus.Logger
 	port                string
 	healthCheckInterval int
-	permissionService   *permission.Service
+	permissionService   permission.Service
 }
 
 // Serve accepts incoming connections on the listener `lis`, creating a new

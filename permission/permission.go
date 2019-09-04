@@ -125,6 +125,10 @@ func (b BSON) GetUserID() string {
 
 // SetUserID sets b.UserID to userID.
 func (b *BSON) SetUserID(userID string) error {
+	if b == nil {
+		panic("b == nil")
+	}
+
 	if userID == "" {
 		return fmt.Errorf("UserID is required")
 	}
@@ -198,8 +202,7 @@ func NewMongoStore(db *mongo.Database) (MongoStore, error) {
 
 // HealthCheck checks the health of the service, returns true if healthy, or false otherwise.
 func (s MongoStore) HealthCheck(ctx context.Context) (bool, error) {
-	err := s.DB.Client().Ping(ctx, readpref.Primary())
-	if err != nil {
+	if err := s.DB.Client().Ping(ctx, readpref.Primary()); err != nil {
 		return false, err
 	}
 
@@ -207,11 +210,7 @@ func (s MongoStore) HealthCheck(ctx context.Context) (bool, error) {
 }
 
 // HealthCheck checks the health of the service, returns true if healthy, or false otherwise.
-func (s *Service) HealthCheck(mongoClientPingTimeout time.Duration) bool {
-	if s == nil {
-		panic("s == nil")
-	}
-
+func (s Service) HealthCheck(mongoClientPingTimeout time.Duration) bool {
 	timeoutCtx, cancel := context.WithTimeout(context.TODO(), mongoClientPingTimeout)
 	defer cancel()
 	healthy, err := s.store.HealthCheck(timeoutCtx)
@@ -224,8 +223,8 @@ func (s *Service) HealthCheck(mongoClientPingTimeout time.Duration) bool {
 }
 
 // NewService creates a Service and returns it.
-func NewService(store Store, logger *logrus.Logger) *Service {
-	return &Service{store: store, logger: logger}
+func NewService(store Store, logger *logrus.Logger) Service {
+	return Service{store: store, logger: logger}
 }
 
 // CreatePermission is the request handler for creating a permission of a file to user.
