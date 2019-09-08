@@ -57,13 +57,13 @@ type MongoStore struct {
 // Permission is an interface of a permission object.
 type Permission interface {
 	GetID() string
-
+	SetID(id string) error
 	GetFileID() string
-
+	SetFileID(fileID string) error
 	GetUserID() string
-
+	SetUserID(userID string) error
 	GetInherited() string
-
+	SetInherited(inherited string) error
 	MarshalProto(permission *pb.PermissionObject) error
 }
 
@@ -241,7 +241,7 @@ func (s Service) CreatePermission(ctx context.Context, req *pb.CreatePermissionR
 	}
 
 	// Create the root permission.
-	rootPermission := BSON{FileID: rootFileID, UserID: userID}
+	rootPermission := &BSON{FileID: rootFileID, UserID: userID}
 	rootPermissionID, err := s.store.Create(ctx, rootPermission)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating root permission: %v", err)
@@ -263,7 +263,7 @@ func (s Service) CreatePermission(ctx context.Context, req *pb.CreatePermissionR
 			return nil, err
 		}
 
-		inheritors = append(inheritors, *inheritor)
+		inheritors = append(inheritors, inheritor)
 	}
 
 	// Create the inheritors' permissions.
@@ -348,7 +348,7 @@ func (s Service) GetPermission(ctx context.Context, req *pb.GetPermissionRequest
 func (s MongoStore) Get(ctx context.Context, filter interface{}) (Permission, error) {
 	collection := s.DB.Collection(PermissionCollectionName)
 
-	permission := BSON{}
+	permission := &BSON{}
 	err := collection.FindOne(ctx, filter).Decode(&permission)
 	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
@@ -376,7 +376,7 @@ func (s MongoStore) GetAll(ctx context.Context, filter interface{}) ([]Permissio
 
 	permissions := make([]Permission, 0, 1)
 	for cur.Next(ctx) {
-		permission := BSON{}
+		permission := &BSON{}
 		err := cur.Decode(&permission)
 		if err != nil {
 			return nil, err
@@ -454,7 +454,7 @@ func (s MongoStore) Delete(ctx context.Context, filter interface{}) (Permission,
 		}
 	}
 
-	permission := BSON{}
+	permission := &BSON{}
 	if err := collection.FindOneAndDelete(ctx, filter).Decode(&permission); err != nil {
 		return nil, err
 	}
