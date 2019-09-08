@@ -1,6 +1,6 @@
 module github.com/meateam/permission-service
 
-go 1.12
+go 1.13
 
 require (
 	github.com/golang/protobuf v1.3.1
@@ -14,8 +14,6 @@ require (
 	go.mongodb.org/mongo-driver v1.1.0
 	google.golang.org/grpc v1.21.0
 )
-
-replace git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
 
 replace github.com/meateam/permission-service/server => ./server
 
