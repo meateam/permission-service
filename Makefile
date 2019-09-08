@@ -4,7 +4,7 @@ PROTOC=protoc
 # Binary names
 BINARY_NAME=permission-service
 
-all: clean deps test build
+all: clean deps fmt test build
 build: build-proto build-app 
 test:
 		docker-compose -f "docker-compose.yml" up -d minio && \
@@ -23,3 +23,7 @@ build-app:
 build-proto:
 		rm -f proto/*.pb.go
 		protoc -I proto/ proto/*.proto --go_out=plugins=grpc:./proto
+
+.PHONY: fmt
+fmt:
+	./gofmt.sh
