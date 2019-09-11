@@ -8,8 +8,9 @@ import (
 
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	ilogger "github.com/meateam/elasticsearch-logger"
-	"github.com/meateam/permission-service/permission"
 	pb "github.com/meateam/permission-service/proto"
+	"github.com/meateam/permission-service/service"
+	"github.com/meateam/permission-service/service/mongodb"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -47,7 +48,7 @@ type PermissionServer struct {
 	logger              *logrus.Logger
 	port                string
 	healthCheckInterval int
-	permissionService   permission.Service
+	permissionService   service.Service
 }
 
 // Serve accepts incoming connections on the listener `lis`, creating a new
@@ -130,12 +131,12 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 		logger.Fatalf("failed parsing connection string %s: %v", connectionString, err.Error())
 	}
 
-	mongoStore, err := permission.NewMongoStore(mongoClient.Database(connString.Database))
+	controller, err := mongodb.NewMongoController(mongoClient.Database(connString.Database))
 	if err != nil {
 		logger.Fatalf("failed creating mongo store: %v", err)
 	}
 
-	permissionService := permission.NewService(mongoStore, logger)
+	permissionService := service.NewService(controller, logger)
 	pb.RegisterPermissionServer(grpcServer, permissionService)
 
 	// Create a health server and register it on the grpc server.

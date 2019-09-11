@@ -17,6 +17,6 @@ require (
 
 replace github.com/meateam/permission-service/server => ./server
 
-replace github.com/meateam/permission-service/permission => ./permission
+replace github.com/meateam/permission-service/service => ./service
 
 replace github.com/meateam/permission-service/proto => ./proto
