@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	pb "github.com/meateam/permission-service/proto"
 	"github.com/meateam/permission-service/service"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 const (
@@ -86,6 +85,11 @@ func (s MongoStore) Create(ctx context.Context, permission service.Permission) (
 		return nil, fmt.Errorf("userID is required")
 	}
 
+	role := permission.GetRole()
+	if pb.Role_name[int32(role)] == "" {
+		return nil, fmt.Errorf("role does not exist")
+	}
+
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONFileIDField,
@@ -97,7 +101,30 @@ func (s MongoStore) Create(ctx context.Context, permission service.Permission) (
 		},
 	}
 
-	result := collection.FindOneAndUpdate(ctx, filter, permission, options.FindOneAndUpdate().SetUpsert(true))
+	permissionUpdate := bson.D{
+		bson.E{
+			Key:   PermissionBSONFileIDField,
+			Value: fileID,
+		},
+		bson.E{
+			Key:   PermissionBSONUserIDField,
+			Value: userID,
+		},
+		bson.E{
+			Key:   PermissionBSONRoleField,
+			Value: role,
+		},
+	}
+
+	update := bson.D{
+		bson.E{
+			Key:   "$set",
+			Value: permissionUpdate,
+		},
+	}
+
+	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
+	result := collection.FindOneAndUpdate(ctx, filter, update, opts)
 	newPermission := &BSON{}
 	err := result.Decode(newPermission)
 	if err != nil {
@@ -116,12 +143,8 @@ func (s MongoStore) Get(ctx context.Context, filter interface{}) (service.Permis
 
 	permission := &BSON{}
 	err := collection.FindOne(ctx, filter).Decode(permission)
-	if err != nil && err != mongo.ErrNoDocuments {
+	if err != nil {
 		return nil, err
-	}
-
-	if err == mongo.ErrNoDocuments {
-		return nil, status.Error(codes.Unimplemented, "permission not found")
 	}
 
 	return permission, nil

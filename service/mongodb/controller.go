@@ -8,6 +8,8 @@ import (
 	"github.com/meateam/permission-service/service"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Controller is the permisison service business logic implementation using MongoStore.
@@ -51,8 +53,12 @@ func (c Controller) IsPermitted(ctx context.Context, fileID string, userID strin
 	}
 
 	permission, err := c.store.Get(ctx, filter)
-	if err != nil {
+	if err != nil && err != mongo.ErrNoDocuments {
 		return false, err
+	}
+
+	if err == mongo.ErrNoDocuments {
+		return false, status.Error(codes.Unimplemented, "permission not found")
 	}
 
 	return isSubRole(permission.GetRole(), role), nil
@@ -73,8 +79,12 @@ func (c Controller) DeletePermission(ctx context.Context, fileID string, userID 
 	}
 
 	permission, err := c.store.Delete(ctx, filter)
-	if err != nil {
+	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
+	}
+
+	if err == mongo.ErrNoDocuments {
+		return nil, status.Error(codes.Unimplemented, "permission not found")
 	}
 
 	return permission, nil
