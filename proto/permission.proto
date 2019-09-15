@@ -2,10 +2,18 @@ syntax = "proto3";
 
 package permission;
 
+enum Role {
+	NONE = 0;
+	OWNER = 1;
+	WRITE = 2;
+	READ = 3;
+}
+
 service Permission {
-	rpc CreatePermission(CreatePermissionRequest) returns (CreatePermissionResponse) {}
-	rpc GetPermission(GetPermissionRequest) returns (PermissionObject) {}
+	rpc CreatePermission(CreatePermissionRequest) returns (PermissionObject) {}
 	rpc DeletePermission(DeletePermissionRequest) returns (PermissionObject) {}
+	rpc GetFilePermissions(GetFilePermissionsRequest) returns (GetFilePermissionsResponse) {}
+	rpc IsPermitted(IsPermittedRequest) returns (IsPermittedResponse) {}
 }
 
 message CreatePermissionRequest {
@@ -14,22 +22,9 @@ message CreatePermissionRequest {
 
 	// The ID of the user that's given the permission.
 	string userID = 2;
-}
 
-message CreatePermissionResponse {
-	// The ID of the file which is being permitted.
-	string fileID = 1;
-
-	// The ID of the user that's given the permission.
-	string userID = 2;
-}
-
-message GetPermissionRequest {
-	// The ID of the file which is being permitted.
-	string fileID = 1;
-
-	// The ID of the user that's given the permission.
-	string userID = 2;
+	// The role of the permission.
+	Role role = 3;
 }
 
 message DeletePermissionRequest {
@@ -49,4 +44,41 @@ message PermissionObject {
 
 	// The ID of the user that's given the permission.
 	string userID = 3;
+
+	// The role of the permission.
+	Role role = 4;
+}
+
+message GetFilePermissionsRequest {
+	// The ID of the file which is being permitted.
+	string fileID = 1;
+}
+
+message GetFilePermissionsResponse {
+	// The role of a user.
+	message UserRole {
+		// The user ID.
+		string userID = 1;
+
+		// The role of the user.
+		Role role = 2;
+	}
+
+	// Array of user roles.
+	repeated UserRole permissions = 1;
+}
+
+message IsPermittedRequest {
+	// The ID of the file which is being permitted.
+	string fileID = 1;
+
+	// The ID of the user that's given the permission.
+	string userID = 2;
+
+	// The role of the permission.
+	Role role = 3;
+}
+
+message IsPermittedResponse {
+	bool permitted = 1;
 }

@@ -12,6 +12,7 @@ type BSON struct {
 	ID     primitive.ObjectID `bson:"_id,omitempty"`
 	FileID string             `bson:"fileID,omitempty"`
 	UserID string             `bson:"userID,omitempty"`
+	Role   pb.Role            `bson:"role"`
 }
 
 // GetID returns the string value of the b.ID.
@@ -76,11 +77,31 @@ func (b *BSON) SetUserID(userID string) error {
 	return nil
 }
 
+// GetRole returns b.Role.
+func (b BSON) GetRole() pb.Role {
+	return b.Role
+}
+
+// SetRole sets b.Role to role.
+func (b *BSON) SetRole(role pb.Role) error {
+	if b == nil {
+		panic("b == nil")
+	}
+
+	if pb.Role_name[int32(role)] == "" {
+		return fmt.Errorf("Role does not exist")
+	}
+
+	b.Role = role
+	return nil
+}
+
 // MarshalProto marshals b into a permission.
 func (b BSON) MarshalProto(permission *pb.PermissionObject) error {
 	permission.Id = b.GetID()
 	permission.FileID = b.GetFileID()
 	permission.UserID = b.GetUserID()
+	permission.Role = b.GetRole()
 
 	return nil
 }

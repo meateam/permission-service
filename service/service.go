@@ -34,10 +34,10 @@ func NewService(controller Controller, logger *logrus.Logger) Service {
 }
 
 // CreatePermission is the request handler for creating a permission of a file to user.
-func (s Service) CreatePermission(ctx context.Context, req *pb.CreatePermissionRequest) (*pb.CreatePermissionResponse, error) {
+func (s Service) CreatePermission(ctx context.Context, req *pb.CreatePermissionRequest) (*pb.PermissionObject, error) {
 	fileID := req.GetFileID()
 	userID := req.GetUserID()
-
+	role := req.GetRole()
 	if userID == "" {
 		return nil, fmt.Errorf("UserID is required")
 	}
@@ -46,22 +46,11 @@ func (s Service) CreatePermission(ctx context.Context, req *pb.CreatePermissionR
 		return nil, fmt.Errorf("FileID is required")
 	}
 
-	id, err := s.controller.CreatePermission(ctx, fileID, userID)
-	if err != nil {
-		return nil, err
+	if pb.Role_name[int32(role)] == "" {
+		return nil, fmt.Errorf("role does not exist")
 	}
 
-	return &pb.CreatePermissionResponse{Id: id}, nil
-}
-
-// GetPermission is the request handler for retrieving permission details by its ID.
-func (s Service) GetPermission(ctx context.Context, req *pb.GetPermissionRequest) (*pb.PermissionObject, error) {
-	permissionID := req.GetId()
-	if permissionID == "" {
-		return nil, fmt.Errorf("ID is required")
-	}
-
-	permission, err := s.controller.GetPermission(ctx, "", "")
+	permission, err := s.controller.CreatePermission(ctx, fileID, userID, role)
 	if err != nil {
 		return nil, err
 	}
@@ -74,16 +63,37 @@ func (s Service) GetPermission(ctx context.Context, req *pb.GetPermissionRequest
 	return &response, nil
 }
 
+// GetFilePermissions is the request handler for retrieving permissions of file by its ID.
+func (s Service) GetFilePermissions(ctx context.Context, req *pb.GetFilePermissionsRequest) (*pb.GetFilePermissionsResponse, error) {
+	fileID := req.GetFileID()
+	if fileID == "" {
+		return nil, fmt.Errorf("fileID is required")
+	}
+
+	filePermissions, err := s.controller.GetFilePermissions(ctx, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.GetFilePermissionsResponse{Permissions: filePermissions}, nil
+}
+
 // DeletePermission is the request handler for deleting permission by its ID.
 func (s Service) DeletePermission(
 	ctx context.Context, req *pb.DeletePermissionRequest,
 ) (*pb.PermissionObject, error) {
-	permissionID := req.GetId()
-	if permissionID == "" {
-		return nil, fmt.Errorf("ID is required")
+	fileID := req.GetFileID()
+	userID := req.GetUserID()
+
+	if userID == "" {
+		return nil, fmt.Errorf("UserID is required")
 	}
 
-	permission, err := s.controller.DeletePermission(ctx, "", "")
+	if fileID == "" {
+		return nil, fmt.Errorf("FileID is required")
+	}
+
+	permission, err := s.controller.DeletePermission(ctx, fileID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -94,4 +104,28 @@ func (s Service) DeletePermission(
 	}
 
 	return &response, nil
+}
+
+// IsPermitted is the request handler for checking user permission by userID and fileID.
+func (s Service) IsPermitted(ctx context.Context, req *pb.IsPermittedRequest) (*pb.IsPermittedResponse, error) {
+	fileID := req.GetFileID()
+	userID := req.GetUserID()
+	role := req.GetRole()
+	if userID == "" {
+		return nil, fmt.Errorf("UserID is required")
+	}
+
+	if fileID == "" {
+		return nil, fmt.Errorf("FileID is required")
+	}
+
+	if pb.Role_name[int32(role)] == "" {
+		return nil, fmt.Errorf("role does not exist")
+	}
+	isPermitted, err := s.controller.IsPermitted(ctx, fileID, userID, role)
+	if err != nil {
+		return &pb.IsPermittedResponse{Permitted: false}, err
+	}
+
+	return &pb.IsPermittedResponse{Permitted: isPermitted}, nil
 }

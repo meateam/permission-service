@@ -2,10 +2,10 @@ package mongodb
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/meateam/permission-service/service"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -25,6 +25,9 @@ const (
 
 	// PermissionBSONUserIDField is the name of the userID field in BSON.
 	PermissionBSONUserIDField = "userID"
+
+	// PermissionBSONRoleField is the name of the role field in BSON.
+	PermissionBSONRoleField = "role"
 )
 
 // MongoStore holds the mongodb database and implements Store interface.
@@ -68,48 +71,51 @@ func (s MongoStore) HealthCheck(ctx context.Context) (bool, error) {
 }
 
 // Create creates a permission of a file to a user,
-// If successful returns the permission's ID and a nil error,
+// If permission already exists then it's updated to have permission values,
+// If successful returns the permission and a nil error,
 // otherwise returns empty string and non-nil error if any occured.
-func (s MongoStore) Create(ctx context.Context, permission service.Permission) (string, error) {
+func (s MongoStore) Create(ctx context.Context, permission service.Permission) (service.Permission, error) {
 	collection := s.DB.Collection(PermissionCollectionName)
-	result, err := collection.InsertOne(ctx, permission)
-	if err != nil {
-		return "", err
+	fileID := permission.GetFileID()
+	if fileID == "" {
+		return nil, fmt.Errorf("fileID is required")
 	}
 
-	return result.InsertedID.(primitive.ObjectID).Hex(), nil
-}
-
-// CreateMany creates many permissions using InsertMany.
-func (s MongoStore) CreateMany(ctx context.Context, permissions []service.Permission) ([]string, error) {
-	collection := s.DB.Collection(PermissionCollectionName)
-	documents := make([]interface{}, 0, len(permissions))
-	for _, permission := range permissions {
-		documents = append(documents, permission)
+	userID := permission.GetUserID()
+	if userID == "" {
+		return nil, fmt.Errorf("userID is required")
 	}
 
-	results, err := collection.InsertMany(ctx, documents)
+	filter := bson.D{
+		bson.E{
+			Key:   PermissionBSONFileIDField,
+			Value: fileID,
+		},
+		bson.E{
+			Key:   PermissionBSONUserIDField,
+			Value: userID,
+		},
+	}
+
+	result := collection.FindOneAndUpdate(ctx, filter, permission, options.FindOneAndUpdate().SetUpsert(true))
+	newPermission := &BSON{}
+	err := result.Decode(newPermission)
 	if err != nil {
 		return nil, err
 	}
 
-	ids := make([]string, 0, len(results.InsertedIDs))
-	for _, result := range results.InsertedIDs {
-		ids = append(ids, result.(primitive.ObjectID).Hex())
-	}
-
-	return ids, nil
+	return newPermission, nil
 }
 
 // Get finds one permission that matches filter,
 // if successful returns the permission, and a nil error,
-// if the permission is not found it would return a zero value BSON{},
+// if the permission is not found it would return nil and unimplemented error,
 // otherwise returns nil and non-nil error if any occured.
 func (s MongoStore) Get(ctx context.Context, filter interface{}) (service.Permission, error) {
 	collection := s.DB.Collection(PermissionCollectionName)
 
-	permission := BSON{}
-	err := collection.FindOne(ctx, filter).Decode(&permission)
+	permission := &BSON{}
+	err := collection.FindOne(ctx, filter).Decode(permission)
 	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
 	}
@@ -122,8 +128,7 @@ func (s MongoStore) Get(ctx context.Context, filter interface{}) (service.Permis
 }
 
 // GetAll finds all permissions that matches filter,
-// if successful returns the permission, and a nil error,
-// if the permission is not found it would return a zero value BSON{},
+// if successful returns the permissions, and a nil error,
 // otherwise returns nil and non-nil error if any occured.
 func (s MongoStore) GetAll(ctx context.Context, filter interface{}) ([]service.Permission, error) {
 	collection := s.DB.Collection(PermissionCollectionName)
@@ -134,10 +139,10 @@ func (s MongoStore) GetAll(ctx context.Context, filter interface{}) ([]service.P
 		return nil, err
 	}
 
-	permissions := make([]service.Permission, 0, 1)
+	permissions := []service.Permission{}
 	for cur.Next(ctx) {
-		permission := BSON{}
-		err := cur.Decode(&permission)
+		permission := &BSON{}
+		err := cur.Decode(permission)
 		if err != nil {
 			return nil, err
 		}
@@ -157,8 +162,8 @@ func (s MongoStore) GetAll(ctx context.Context, filter interface{}) ([]service.P
 // and non-nil error if any occured.
 func (s MongoStore) Delete(ctx context.Context, filter interface{}) (service.Permission, error) {
 	collection := s.DB.Collection(PermissionCollectionName)
-	permission := BSON{}
-	if err := collection.FindOneAndDelete(ctx, filter).Decode(&permission); err != nil {
+	permission := &BSON{}
+	if err := collection.FindOneAndDelete(ctx, filter).Decode(permission); err != nil {
 		return nil, err
 	}
 
