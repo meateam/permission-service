@@ -9,10 +9,9 @@ import (
 
 // BSON is the structure that represents a permission as it's stored.
 type BSON struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty"`
-	FileID    string             `bson:"fileID,omitempty"`
-	UserID    string             `bson:"userID,omitempty"`
-	Inherited primitive.ObjectID `bson:"inherited,omitempty"`
+	ID     primitive.ObjectID `bson:"_id,omitempty"`
+	FileID string             `bson:"fileID,omitempty"`
+	UserID string             `bson:"userID,omitempty"`
 }
 
 // GetID returns the string value of the b.ID.
@@ -77,39 +76,11 @@ func (b *BSON) SetUserID(userID string) error {
 	return nil
 }
 
-// GetInherited returns the string value of b.Inherited.
-func (b BSON) GetInherited() string {
-	if b.Inherited.IsZero() {
-		return ""
-	}
-
-	return b.Inherited.Hex()
-}
-
-// SetInherited sets the b.Inherited ObjectID's string value to inherited.
-func (b *BSON) SetInherited(inherited string) error {
-	if b == nil {
-		panic("b == nil")
-	}
-
-	objectID, err := primitive.ObjectIDFromHex(inherited)
-	if err != nil {
-		return err
-	}
-
-	b.Inherited = objectID
-	return nil
-}
-
 // MarshalProto marshals b into a permission.
 func (b BSON) MarshalProto(permission *pb.PermissionObject) error {
 	permission.Id = b.GetID()
 	permission.FileID = b.GetFileID()
 	permission.UserID = b.GetUserID()
-
-	if b.GetInherited() != "" {
-		permission.Inherited = b.GetInherited()
-	}
 
 	return nil
 }

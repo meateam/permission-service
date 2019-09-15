@@ -128,7 +128,7 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 	// Create a download service and register it on the grpc server.
 	connString, err := connstring.Parse(connectionString)
 	if err != nil {
-		logger.Fatalf("failed parsing connection string %s: %v", connectionString, err.Error())
+		logger.Fatalf("failed parsing connection string %s: %v", connectionString, err)
 	}
 
 	controller, err := mongodb.NewMongoController(mongoClient.Database(connString.Database))

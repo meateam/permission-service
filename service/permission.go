@@ -12,7 +12,5 @@ type Permission interface {
 
 	GetUserID() string
 
-	GetInherited() string
-
 	MarshalProto(permission *pb.PermissionObject) error
 }
