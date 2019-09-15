@@ -70,7 +70,7 @@ func (s Service) GetFilePermissions(ctx context.Context, req *pb.GetFilePermissi
 		return nil, fmt.Errorf("fileID is required")
 	}
 
-	filePermissions, err := s.controller.GetFilePermissions(ctx, "")
+	filePermissions, err := s.controller.GetFilePermissions(ctx, fileID)
 	if err != nil {
 		return nil, err
 	}
