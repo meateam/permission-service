@@ -13,6 +13,7 @@ import (
 	"github.com/meateam/permission-service/service/mongodb"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"go.elastic.co/apm/module/apmmongo"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -89,7 +90,7 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 
 	// Create mongodb client.
 	connectionString := viper.GetString(configMongoConnectionString)
-	mongoOptions := options.Client().ApplyURI(connectionString)
+	mongoOptions := options.Client().ApplyURI(connectionString).SetMonitor(apmmongo.CommandMonitor())
 	mongoClient, err := mongo.NewClient(mongoOptions)
 	if err != nil {
 		logger.Fatalf("failed creating mongodb client with connection string %s: %v", connectionString, err)

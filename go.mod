@@ -9,8 +9,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/viper v1.4.0
 	github.com/tidwall/pretty v1.0.0 // indirect
-	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
-	github.com/xdg/stringprep v1.0.0 // indirect
+	go.elastic.co/apm/module/apmmongo v1.5.0
 	go.mongodb.org/mongo-driver v1.1.0
 	google.golang.org/grpc v1.21.0
 )
