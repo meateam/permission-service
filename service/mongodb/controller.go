@@ -39,8 +39,8 @@ func (c Controller) CreatePermission(ctx context.Context, fileID string, userID 
 	return createdPermission, nil
 }
 
-// IsPermitted returns the permission in store that matches fileID and userID.
-func (c Controller) IsPermitted(ctx context.Context, fileID string, userID string, role pb.Role) (bool, error) {
+// GetByFileAndUser retrieves the permissoin that matches fileID and userID, and any error if occured.
+func (c Controller) GetByFileAndUser(ctx context.Context, fileID string, userID string) (service.Permission, error) {
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONFileIDField,
@@ -54,14 +54,14 @@ func (c Controller) IsPermitted(ctx context.Context, fileID string, userID strin
 
 	permission, err := c.store.Get(ctx, filter)
 	if err != nil && err != mongo.ErrNoDocuments {
-		return false, err
+		return nil, err
 	}
 
 	if err == mongo.ErrNoDocuments {
-		return false, status.Error(codes.Unimplemented, "permission not found")
+		return nil, status.Error(codes.Unimplemented, "permission not found")
 	}
 
-	return isSubRole(permission.GetRole(), role), nil
+	return permission, nil
 }
 
 // DeletePermission deletes the permission in store that matches fileID and userID
@@ -119,23 +119,4 @@ func (c Controller) GetFilePermissions(ctx context.Context, fileID string) ([]*p
 		})
 	}
 	return returnedPermissions, nil
-}
-
-func isSubRole(role pb.Role, wanted pb.Role) bool {
-	if wanted == pb.Role_NONE {
-		return false
-	}
-
-	switch role {
-	case pb.Role_NONE:
-		return false
-	case pb.Role_OWNER:
-		return true
-	case pb.Role_WRITE:
-		return wanted == pb.Role_WRITE || wanted == pb.Role_READ
-	case pb.Role_READ:
-		return wanted == pb.Role_READ
-	default:
-		return false
-	}
 }

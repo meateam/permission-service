@@ -122,10 +122,31 @@ func (s Service) IsPermitted(ctx context.Context, req *pb.IsPermittedRequest) (*
 	if pb.Role_name[int32(role)] == "" {
 		return nil, fmt.Errorf("role does not exist")
 	}
-	isPermitted, err := s.controller.IsPermitted(ctx, fileID, userID, role)
+
+	permission, err := s.controller.GetByFileAndUser(ctx, fileID, userID)
 	if err != nil {
 		return &pb.IsPermittedResponse{Permitted: false}, err
 	}
 
+	isPermitted := isSubRole(permission.GetRole(), role)
 	return &pb.IsPermittedResponse{Permitted: isPermitted}, nil
+}
+
+func isSubRole(role pb.Role, wanted pb.Role) bool {
+	if wanted == pb.Role_NONE {
+		return false
+	}
+
+	switch role {
+	case pb.Role_NONE:
+		return false
+	case pb.Role_OWNER:
+		return true
+	case pb.Role_WRITE:
+		return wanted == pb.Role_WRITE || wanted == pb.Role_READ
+	case pb.Role_READ:
+		return wanted == pb.Role_READ
+	default:
+		return false
+	}
 }
