@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"strings"
 	"time"
@@ -88,33 +89,6 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 		logger = ilogger.NewLogger()
 	}
 
-	// Create mongodb client.
-	connectionString := viper.GetString(configMongoConnectionString)
-	mongoOptions := options.Client().ApplyURI(connectionString).SetMonitor(apmmongo.CommandMonitor())
-	mongoClient, err := mongo.NewClient(mongoOptions)
-	if err != nil {
-		logger.Fatalf("failed creating mongodb client with connection string %s: %v", connectionString, err)
-	}
-
-	// Connect client to mongodb.
-	mongoClientConnectionTimout := viper.GetDuration(configMongoClientConnectionTimeout)
-	connectionTimeoutCtx, cancelConn := context.WithTimeout(context.TODO(), mongoClientConnectionTimout*time.Second)
-	defer cancelConn()
-	err = mongoClient.Connect(connectionTimeoutCtx)
-	if err != nil {
-		logger.Fatalf("failed connecting to mongodb with connection string %s: %v", connectionString, err)
-	}
-
-	// Check the connection.
-	mongoClientPingTimeout := viper.GetDuration(configMongoClientPingTimeout)
-	pingTimeoutCtx, cancelPing := context.WithTimeout(context.TODO(), mongoClientPingTimeout*time.Second)
-	defer cancelPing()
-	err = mongoClient.Ping(pingTimeoutCtx, readpref.Primary())
-	if err != nil {
-		logger.Fatalf("failed pinging to mongodb with connection string %s: %v", connectionString, err)
-	}
-	logger.Infof("connected to mongodb with connection string %s", connectionString)
-
 	// Set up grpc server opts with logger interceptor.
 	serverOpts := append(
 		serverLoggerInterceptor(logger),
@@ -126,15 +100,11 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 		serverOpts...,
 	)
 
-	connString, err := connstring.Parse(connectionString)
+	controller, err := initMongoDBController(viper.GetString(configMongoConnectionString))
 	if err != nil {
-		logger.Fatalf("failed parsing connection string %s: %v", connectionString, err)
+		logger.Fatalf("%v", err)
 	}
 
-	controller, err := mongodb.NewMongoController(mongoClient.Database(connString.Database))
-	if err != nil {
-		logger.Fatalf("failed creating mongo store: %v", err)
-	}
 	// Create a permission service and register it on the grpc server.
 	permissionService := service.NewService(controller, logger)
 	pb.RegisterPermissionServer(grpcServer, permissionService)
@@ -155,6 +125,63 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 	go permissionServer.healthCheckWorker(healthServer)
 
 	return permissionServer
+}
+
+func connectToMongoDB(connectionString string) (*mongo.Client, error) {
+	// Create mongodb client.
+	mongoOptions := options.Client().ApplyURI(connectionString).SetMonitor(apmmongo.CommandMonitor())
+	mongoClient, err := mongo.NewClient(mongoOptions)
+	if err != nil {
+		return nil, fmt.Errorf("failed creating mongodb client with connection string %s: %v", connectionString, err)
+	}
+
+	// Connect client to mongodb.
+	mongoClientConnectionTimout := viper.GetDuration(configMongoClientConnectionTimeout)
+	connectionTimeoutCtx, cancelConn := context.WithTimeout(context.TODO(), mongoClientConnectionTimout*time.Second)
+	defer cancelConn()
+	err = mongoClient.Connect(connectionTimeoutCtx)
+	if err != nil {
+		return nil, fmt.Errorf("failed connecting to mongodb with connection string %s: %v", connectionString, err)
+	}
+
+	// Check the connection.
+	mongoClientPingTimeout := viper.GetDuration(configMongoClientPingTimeout)
+	pingTimeoutCtx, cancelPing := context.WithTimeout(context.TODO(), mongoClientPingTimeout*time.Second)
+	defer cancelPing()
+	err = mongoClient.Ping(pingTimeoutCtx, readpref.Primary())
+	if err != nil {
+		return nil, fmt.Errorf("failed pinging to mongodb with connection string %s: %v", connectionString, err)
+	}
+
+	return mongoClient, nil
+}
+
+func getMongoDatabaseName(mongoClient *mongo.Client, connectionString string) (*mongo.Database, error) {
+	connString, err := connstring.Parse(connectionString)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing connection string %s: %v", connectionString, err)
+	}
+
+	return mongoClient.Database(connString.Database), nil
+}
+
+func initMongoDBController(connectionString string) (service.Controller, error) {
+	mongoClient, err := connectToMongoDB(connectionString)
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := getMongoDatabaseName(mongoClient, connectionString)
+	if err != nil {
+		return nil, err
+	}
+
+	controller, err := mongodb.NewMongoController(db)
+	if err != nil {
+		return nil, fmt.Errorf("failed creating mongo store: %v", err)
+	}
+
+	return controller, nil
 }
 
 // serverLoggerInterceptor configures the logger interceptor for the permission server.
