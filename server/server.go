@@ -126,7 +126,6 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 		serverOpts...,
 	)
 
-	// Create a download service and register it on the grpc server.
 	connString, err := connstring.Parse(connectionString)
 	if err != nil {
 		logger.Fatalf("failed parsing connection string %s: %v", connectionString, err)
@@ -136,7 +135,7 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 	if err != nil {
 		logger.Fatalf("failed creating mongo store: %v", err)
 	}
-
+	// Create a permission service and register it on the grpc server.
 	permissionService := service.NewService(controller, logger)
 	pb.RegisterPermissionServer(grpcServer, permissionService)
 
