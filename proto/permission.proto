@@ -10,9 +10,21 @@ enum Role {
 }
 
 service Permission {
+	// CreatePermission creates a new permission and returns it, if permission already exists, update it.
 	rpc CreatePermission(CreatePermissionRequest) returns (PermissionObject) {}
+
+	// DeletePermission deletes a permission and returns it.
 	rpc DeletePermission(DeletePermissionRequest) returns (PermissionObject) {}
+
+	// GetFilePermissions returns the users and their role that have a permission to fileID.
 	rpc GetFilePermissions(GetFilePermissionsRequest) returns (GetFilePermissionsResponse) {}
+
+	// GetUserPermissions returns the files that the user was given permission to,
+	// if IsOwner is true, returns the permissions of files that the user has a role of OWNER,
+	// otherwise returns the permissions of files that the user has a role that is not OWNER or NONE.
+	rpc GetUserPermissions(GetUserPermissionsRequest) returns (GetUserPermissionsResponse) {}
+
+	// IsPermitted returns true if userID is permitted to a fileID with the wanted role.
 	rpc IsPermitted(IsPermittedRequest) returns (IsPermittedResponse) {}
 }
 
@@ -81,4 +93,26 @@ message IsPermittedRequest {
 
 message IsPermittedResponse {
 	bool permitted = 1;
+}
+
+message GetUserPermissionsRequest {
+	// The ID of the user to get its permissions.
+	string userID = 1;
+
+	// Filter permissions where the user was given a role of owner or not.
+	bool isOwner = 2;
+}
+
+message GetUserPermissionsResponse {
+	// The file of the permission and its role.
+	message FileRole {
+		// The file ID.
+		string fileID = 1;
+
+		// The role of the file permission.
+		Role role = 2;
+	}
+
+	// Array of files and their role.
+	repeated FileRole permissions = 1;
 }

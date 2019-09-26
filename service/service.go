@@ -39,11 +39,11 @@ func (s Service) CreatePermission(ctx context.Context, req *pb.CreatePermissionR
 	userID := req.GetUserID()
 	role := req.GetRole()
 	if userID == "" {
-		return nil, fmt.Errorf("UserID is required")
+		return nil, fmt.Errorf("userID is required")
 	}
 
 	if fileID == "" {
-		return nil, fmt.Errorf("FileID is required")
+		return nil, fmt.Errorf("fileID is required")
 	}
 
 	if pb.Role_name[int32(role)] == "" {
@@ -86,11 +86,11 @@ func (s Service) DeletePermission(
 	userID := req.GetUserID()
 
 	if userID == "" {
-		return nil, fmt.Errorf("UserID is required")
+		return nil, fmt.Errorf("userID is required")
 	}
 
 	if fileID == "" {
-		return nil, fmt.Errorf("FileID is required")
+		return nil, fmt.Errorf("fileID is required")
 	}
 
 	permission, err := s.controller.DeletePermission(ctx, fileID, userID)
@@ -130,6 +130,22 @@ func (s Service) IsPermitted(ctx context.Context, req *pb.IsPermittedRequest) (*
 
 	isPermitted := isSubRole(permission.GetRole(), role)
 	return &pb.IsPermittedResponse{Permitted: isPermitted}, nil
+}
+
+// GetUserPermissions ...
+func (s Service) GetUserPermissions(ctx context.Context, req *pb.GetUserPermissionsRequest) (*pb.GetUserPermissionsResponse, error) {
+	userID := req.GetUserID()
+	isOwner := req.GetIsOwner()
+	if userID == "" {
+		return nil, fmt.Errorf("userID is required")
+	}
+
+	permissions, err := s.controller.GetUserPermissions(ctx, userID, isOwner)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.GetUserPermissionsResponse{Permissions: permissions}, nil
 }
 
 func isSubRole(role pb.Role, wanted pb.Role) bool {

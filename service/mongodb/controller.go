@@ -96,7 +96,7 @@ func (c Controller) HealthCheck(ctx context.Context) (bool, error) {
 	return c.store.HealthCheck(ctx)
 }
 
-// GetFilePermissions returns a slice of UserRoles,
+// GetFilePermissions returns a slice of UserRole,
 // otherwise returns nil and any error if occured.
 func (c Controller) GetFilePermissions(ctx context.Context, fileID string) ([]*pb.GetFilePermissionsResponse_UserRole, error) {
 	filter := bson.D{
@@ -119,4 +119,46 @@ func (c Controller) GetFilePermissions(ctx context.Context, fileID string) ([]*p
 		})
 	}
 	return returnedPermissions, nil
+}
+
+// GetUserPermissions returns a slice of FileRole,
+// otherwise returns nil and any error if occured.
+func (c Controller) GetUserPermissions(ctx context.Context, userID string, isOwner bool) ([]*pb.GetUserPermissionsResponse_FileRole, error) {
+	filter := bson.D{
+		bson.E{
+			Key:   PermissionBSONUserIDField,
+			Value: userID,
+		},
+	}
+
+	if isOwner {
+		filter = append(filter, bson.E{
+			Key:   PermissionBSONRoleField,
+			Value: pb.Role_OWNER,
+		})
+	} else {
+		filter = append(filter,
+			bson.E{
+				Key: PermissionBSONRoleField,
+				Value: bson.M{
+					"$nin": bson.A{pb.Role_OWNER, pb.Role_NONE},
+				},
+			},
+		)
+	}
+
+	permissions, err := c.store.GetAll(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	filePermissions := make([]*pb.GetUserPermissionsResponse_FileRole, 0, len(permissions))
+	for _, permission := range permissions {
+		filePermissions = append(filePermissions, &pb.GetUserPermissionsResponse_FileRole{
+			FileID: permission.GetFileID(),
+			Role:   permission.GetRole(),
+		})
+	}
+
+	return filePermissions, nil
 }
