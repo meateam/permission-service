@@ -106,6 +106,31 @@ func (s Service) DeletePermission(
 	return &response, nil
 }
 
+// GetPermission is the request handler for retrieving a permission by a user and file ids.
+func (s Service) GetPermission(ctx context.Context, req *pb.GetPermissionRequest) (*pb.PermissionObject, error) {
+	fileID := req.GetFileID()
+	userID := req.GetUserID()
+	if userID == "" {
+		return nil, fmt.Errorf("UserID is required")
+	}
+
+	if fileID == "" {
+		return nil, fmt.Errorf("FileID is required")
+	}
+
+	permission, err := s.controller.GetByFileAndUser(ctx, fileID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var response pb.PermissionObject
+	if err = permission.MarshalProto(&response); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
 // IsPermitted is the request handler for checking user permission by userID and fileID.
 func (s Service) IsPermitted(ctx context.Context, req *pb.IsPermittedRequest) (*pb.IsPermittedResponse, error) {
 	fileID := req.GetFileID()

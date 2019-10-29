@@ -16,6 +16,9 @@ service Permission {
 	// DeletePermission deletes a permission and returns it.
 	rpc DeletePermission(DeletePermissionRequest) returns (PermissionObject) {}
 
+	// GetPermission returns a permission of the user to a file.
+	rpc GetPermission(GetPermissionRequest) returns (PermissionObject) {}
+
 	// GetFilePermissions returns the users and their role that have a permission to fileID.
 	rpc GetFilePermissions(GetFilePermissionsRequest) returns (GetFilePermissionsResponse) {}
 
@@ -62,6 +65,11 @@ message PermissionObject {
 
 	// The role of the permission.
 	Role role = 4;
+}
+
+message GetPermissionRequest {
+	string fileID = 1;
+	string userID = 2;
 }
 
 message GetFilePermissionsRequest {
