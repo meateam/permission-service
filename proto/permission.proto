@@ -26,6 +26,9 @@ service Permission {
 
 	// IsPermitted returns true if userID is permitted to a fileID with the wanted role.
 	rpc IsPermitted(IsPermittedRequest) returns (IsPermittedResponse) {}
+
+	// DeleteFilePermissions deletes all permissions of a file and returns them.
+	rpc DeleteFilePermissions(DeleteFilePermissionsRequest) returns (DeleteFilePermissionsResponse) {}
 }
 
 message CreatePermissionRequest {
@@ -115,4 +118,12 @@ message GetUserPermissionsResponse {
 
 	// Array of files and their role.
 	repeated FileRole permissions = 1;
+}
+
+message DeleteFilePermissionsRequest {
+	string fileID = 1;
+}
+
+message DeleteFilePermissionsResponse {
+	repeated PermissionObject permissions = 1;
 }

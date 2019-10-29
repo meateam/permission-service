@@ -13,5 +13,6 @@ type Controller interface {
 	GetFilePermissions(ctx context.Context, fileID string) ([]*pb.GetFilePermissionsResponse_UserRole, error)
 	GetByFileAndUser(ctx context.Context, fileID string, userID string) (Permission, error)
 	GetUserPermissions(ctx context.Context, userID string, isOwner bool) ([]*pb.GetUserPermissionsResponse_FileRole, error)
+	DeleteFilePermissions(ctx context.Context, fileID string) ([]*pb.PermissionObject, error)
 	HealthCheck(ctx context.Context) (bool, error)
 }

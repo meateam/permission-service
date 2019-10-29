@@ -132,7 +132,7 @@ func (s Service) IsPermitted(ctx context.Context, req *pb.IsPermittedRequest) (*
 	return &pb.IsPermittedResponse{Permitted: isPermitted}, nil
 }
 
-// GetUserPermissions ...
+// GetUserPermissions is the request handler for fetching the permissions that a user has, filtered by ownership.
 func (s Service) GetUserPermissions(ctx context.Context, req *pb.GetUserPermissionsRequest) (*pb.GetUserPermissionsResponse, error) {
 	userID := req.GetUserID()
 	isOwner := req.GetIsOwner()
@@ -146,6 +146,21 @@ func (s Service) GetUserPermissions(ctx context.Context, req *pb.GetUserPermissi
 	}
 
 	return &pb.GetUserPermissionsResponse{Permissions: permissions}, nil
+}
+
+// DeleteFilePermissions is the request handler for deleting all permissions that exist for a certain file.
+func (s Service) DeleteFilePermissions(ctx context.Context, req *pb.DeleteFilePermissionsRequest) (*pb.DeleteFilePermissionsResponse, error) {
+	fileID := req.GetFileID()
+	if fileID == "" {
+		return nil, fmt.Errorf("fileID is required")
+	}
+
+	permissions, err := s.controller.DeleteFilePermissions(ctx, fileID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.DeleteFilePermissionsResponse{Permissions: permissions}, nil
 }
 
 func isSubRole(role pb.Role, wanted pb.Role) bool {

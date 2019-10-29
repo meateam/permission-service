@@ -98,7 +98,8 @@ func (c Controller) HealthCheck(ctx context.Context) (bool, error) {
 
 // GetFilePermissions returns a slice of UserRole,
 // otherwise returns nil and any error if occured.
-func (c Controller) GetFilePermissions(ctx context.Context, fileID string) ([]*pb.GetFilePermissionsResponse_UserRole, error) {
+func (c Controller) GetFilePermissions(ctx context.Context,
+	fileID string) ([]*pb.GetFilePermissionsResponse_UserRole, error) {
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONFileIDField,
@@ -123,7 +124,8 @@ func (c Controller) GetFilePermissions(ctx context.Context, fileID string) ([]*p
 
 // GetUserPermissions returns a slice of FileRole,
 // otherwise returns nil and any error if occured.
-func (c Controller) GetUserPermissions(ctx context.Context, userID string, isOwner bool) ([]*pb.GetUserPermissionsResponse_FileRole, error) {
+func (c Controller) GetUserPermissions(ctx context.Context,
+	userID string, isOwner bool) ([]*pb.GetUserPermissionsResponse_FileRole, error) {
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONUserIDField,
@@ -161,4 +163,45 @@ func (c Controller) GetUserPermissions(ctx context.Context, userID string, isOwn
 	}
 
 	return filePermissions, nil
+}
+
+// DeleteFilePermissions deletes all permissions that exist for fileID and
+// returns a slice of Permissions that were deleted.
+func (c Controller) DeleteFilePermissions(ctx context.Context,
+	fileID string) ([]*pb.PermissionObject, error) {
+	filePermissionsFilter := bson.D{
+		bson.E{
+			Key:   PermissionBSONFileIDField,
+			Value: fileID,
+		},
+	}
+	permissions, err := c.store.GetAll(ctx, filePermissionsFilter)
+	if err != nil {
+		return nil, err
+	}
+
+	deletedPermissions := make([]*pb.PermissionObject, 0, len(permissions))
+	for _, permission := range permissions {
+		permissionFilter := bson.D{
+			bson.E{
+				Key:   MongoObjectIDField,
+				Value: permission.GetFileID(),
+			},
+		}
+
+		deletedPermission, err := c.store.Delete(ctx, permissionFilter)
+		if err != nil {
+			return nil, err
+		}
+
+		protoDeletedPermission := &pb.PermissionObject{
+			Id:     deletedPermission.GetID(),
+			FileID: deletedPermission.GetFileID(),
+			UserID: deletedPermission.GetUserID(),
+			Role:   deletedPermission.GetRole(),
+		}
+		deletedPermissions = append(deletedPermissions, protoDeletedPermission)
+	}
+
+	return deletedPermissions, nil
 }
