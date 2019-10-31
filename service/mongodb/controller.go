@@ -7,6 +7,7 @@ import (
 	pb "github.com/meateam/permission-service/proto"
 	"github.com/meateam/permission-service/service"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -182,10 +183,15 @@ func (c Controller) DeleteFilePermissions(ctx context.Context,
 
 	deletedPermissions := make([]*pb.PermissionObject, 0, len(permissions))
 	for _, permission := range permissions {
+		permissionID, err := primitive.ObjectIDFromHex(permission.GetID())
+		if err != nil {
+			return nil, err
+		}
+
 		permissionFilter := bson.D{
 			bson.E{
 				Key:   MongoObjectIDField,
-				Value: permission.GetFileID(),
+				Value: permissionID,
 			},
 		}
 
