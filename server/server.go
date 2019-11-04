@@ -25,6 +25,7 @@ import (
 )
 
 const (
+	envPrefix                          = "PS"
 	configPort                         = "port"
 	configHealthCheckInterval          = "health_check_interval"
 	configMongoConnectionString        = "mongo_host"
@@ -40,6 +41,7 @@ func init() {
 	viper.SetDefault(configMongoConnectionString, "mongodb://localhost:27017/permission")
 	viper.SetDefault(configMongoClientConnectionTimeout, 10)
 	viper.SetDefault(configMongoClientPingTimeout, 10)
+	viper.SetEnvPrefix(envPrefix)
 	viper.AutomaticEnv()
 }
 
