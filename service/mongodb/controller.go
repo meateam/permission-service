@@ -125,29 +125,14 @@ func (c Controller) GetFilePermissions(ctx context.Context,
 
 // GetUserPermissions returns a slice of FileRole,
 // otherwise returns nil and any error if occured.
-func (c Controller) GetUserPermissions(ctx context.Context,
-	userID string, isOwner bool) ([]*pb.GetUserPermissionsResponse_FileRole, error) {
+func (c Controller) GetUserPermissions(
+	ctx context.Context,
+	userID string) ([]*pb.GetUserPermissionsResponse_FileRole, error) {
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONUserIDField,
 			Value: userID,
 		},
-	}
-
-	if isOwner {
-		filter = append(filter, bson.E{
-			Key:   PermissionBSONRoleField,
-			Value: pb.Role_OWNER,
-		})
-	} else {
-		filter = append(filter,
-			bson.E{
-				Key: PermissionBSONRoleField,
-				Value: bson.M{
-					"$nin": bson.A{pb.Role_OWNER, pb.Role_NONE},
-				},
-			},
-		)
 	}
 
 	permissions, err := c.store.GetAll(ctx, filter)
