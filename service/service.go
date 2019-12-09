@@ -157,15 +157,14 @@ func (s Service) IsPermitted(ctx context.Context, req *pb.IsPermittedRequest) (*
 	return &pb.IsPermittedResponse{Permitted: isPermitted}, nil
 }
 
-// GetUserPermissions is the request handler for fetching the permissions that a user has, filtered by ownership.
+// GetUserPermissions is the request handler for fetching the permissions that a user has.
 func (s Service) GetUserPermissions(ctx context.Context, req *pb.GetUserPermissionsRequest) (*pb.GetUserPermissionsResponse, error) {
 	userID := req.GetUserID()
-	isOwner := req.GetIsOwner()
 	if userID == "" {
 		return nil, fmt.Errorf("userID is required")
 	}
 
-	permissions, err := s.controller.GetUserPermissions(ctx, userID, isOwner)
+	permissions, err := s.controller.GetUserPermissions(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -196,8 +195,6 @@ func isSubRole(role pb.Role, wanted pb.Role) bool {
 	switch role {
 	case pb.Role_NONE:
 		return false
-	case pb.Role_OWNER:
-		return true
 	case pb.Role_WRITE:
 		return wanted == pb.Role_WRITE || wanted == pb.Role_READ
 	case pb.Role_READ:
