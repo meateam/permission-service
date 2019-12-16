@@ -34,7 +34,10 @@ func NewService(controller Controller, logger *logrus.Logger) Service {
 }
 
 // CreatePermission is the request handler for creating a permission of a file to user.
-func (s Service) CreatePermission(ctx context.Context, req *pb.CreatePermissionRequest) (*pb.PermissionObject, error) {
+func (s Service) CreatePermission(
+	ctx context.Context,
+	req *pb.CreatePermissionRequest,
+) (*pb.PermissionObject, error) {
 	fileID := req.GetFileID()
 	userID := req.GetUserID()
 	role := req.GetRole()
@@ -64,7 +67,10 @@ func (s Service) CreatePermission(ctx context.Context, req *pb.CreatePermissionR
 }
 
 // GetFilePermissions is the request handler for retrieving permissions of file by its ID.
-func (s Service) GetFilePermissions(ctx context.Context, req *pb.GetFilePermissionsRequest) (*pb.GetFilePermissionsResponse, error) {
+func (s Service) GetFilePermissions(
+	ctx context.Context,
+	req *pb.GetFilePermissionsRequest,
+) (*pb.GetFilePermissionsResponse, error) {
 	fileID := req.GetFileID()
 	if fileID == "" {
 		return nil, fmt.Errorf("fileID is required")
@@ -158,7 +164,10 @@ func (s Service) IsPermitted(ctx context.Context, req *pb.IsPermittedRequest) (*
 }
 
 // GetUserPermissions is the request handler for fetching the permissions that a user has, filtered by ownership.
-func (s Service) GetUserPermissions(ctx context.Context, req *pb.GetUserPermissionsRequest) (*pb.GetUserPermissionsResponse, error) {
+func (s Service) GetUserPermissions(
+	ctx context.Context,
+	req *pb.GetUserPermissionsRequest,
+) (*pb.GetUserPermissionsResponse, error) {
 	userID := req.GetUserID()
 	isOwner := req.GetIsOwner()
 	if userID == "" {
@@ -174,7 +183,10 @@ func (s Service) GetUserPermissions(ctx context.Context, req *pb.GetUserPermissi
 }
 
 // DeleteFilePermissions is the request handler for deleting all permissions that exist for a certain file.
-func (s Service) DeleteFilePermissions(ctx context.Context, req *pb.DeleteFilePermissionsRequest) (*pb.DeleteFilePermissionsResponse, error) {
+func (s Service) DeleteFilePermissions(
+	ctx context.Context,
+	req *pb.DeleteFilePermissionsRequest,
+) (*pb.DeleteFilePermissionsResponse, error) {
 	fileID := req.GetFileID()
 	if fileID == "" {
 		return nil, fmt.Errorf("fileID is required")

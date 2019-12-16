@@ -72,7 +72,7 @@ func (s MongoStore) HealthCheck(ctx context.Context) (bool, error) {
 // Create creates a permission of a file to a user,
 // If permission already exists then it's updated to have permission values,
 // If successful returns the permission and a nil error,
-// otherwise returns empty string and non-nil error if any occured.
+// otherwise returns empty string and non-nil error if any occurred.
 func (s MongoStore) Create(ctx context.Context, permission service.Permission) (service.Permission, error) {
 	collection := s.DB.Collection(PermissionCollectionName)
 	fileID := permission.GetFileID()
@@ -137,7 +137,7 @@ func (s MongoStore) Create(ctx context.Context, permission service.Permission) (
 // Get finds one permission that matches filter,
 // if successful returns the permission, and a nil error,
 // if the permission is not found it would return nil and unimplemented error,
-// otherwise returns nil and non-nil error if any occured.
+// otherwise returns nil and non-nil error if any occurred.
 func (s MongoStore) Get(ctx context.Context, filter interface{}) (service.Permission, error) {
 	collection := s.DB.Collection(PermissionCollectionName)
 
@@ -152,15 +152,15 @@ func (s MongoStore) Get(ctx context.Context, filter interface{}) (service.Permis
 
 // GetAll finds all permissions that matches filter,
 // if successful returns the permissions, and a nil error,
-// otherwise returns nil and non-nil error if any occured.
+// otherwise returns nil and non-nil error if any occurred.
 func (s MongoStore) GetAll(ctx context.Context, filter interface{}) ([]service.Permission, error) {
 	collection := s.DB.Collection(PermissionCollectionName)
 
 	cur, err := collection.Find(ctx, filter)
-	defer cur.Close(ctx)
 	if err != nil {
 		return nil, err
 	}
+	defer cur.Close(ctx)
 
 	permissions := []service.Permission{}
 	for cur.Next(ctx) {
@@ -182,7 +182,7 @@ func (s MongoStore) GetAll(ctx context.Context, filter interface{}) ([]service.P
 
 // Delete finds the first permission that matches filter and deletes it,
 // if successful returns the deleted permission, otherwise returns nil,
-// and non-nil error if any occured.
+// and non-nil error if any occurred.
 func (s MongoStore) Delete(ctx context.Context, filter interface{}) (service.Permission, error) {
 	collection := s.DB.Collection(PermissionCollectionName)
 	permission := &BSON{}

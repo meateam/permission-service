@@ -9,10 +9,10 @@ import (
 
 // BSON is the structure that represents a permission as it's stored.
 type BSON struct {
-	ID     primitive.ObjectID `bson:"_id,omitempty"`
 	FileID string             `bson:"fileID,omitempty"`
 	UserID string             `bson:"userID,omitempty"`
 	Role   pb.Role            `bson:"role"`
+	ID     primitive.ObjectID `bson:"_id,omitempty"`
 }
 
 // GetID returns the string value of the b.ID.
