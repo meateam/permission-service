@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package permission;
+
+enum Role {
+	NONE = 0;
+	OWNER = 1;
+	WRITE = 2;
+	READ = 3;
+}
+
+service Permission {
+	// CreatePermission creates a new permission and returns it, if permission already exists, update it.
+	rpc CreatePermission(CreatePermissionRequest) returns (PermissionObject) {}
+
+	// DeletePermission deletes a permission and returns it.
+	rpc DeletePermission(DeletePermissionRequest) returns (PermissionObject) {}
+
+	// GetFilePermissions returns the users and their role that have a permission to fileID.
+	rpc GetFilePermissions(GetFilePermissionsRequest) returns (GetFilePermissionsResponse) {}
+
+	// GetUserPermissions returns the files that the user was given permission to,
+	// if IsOwner is true, returns the permissions of files that the user has a role of OWNER,
+	// otherwise returns the permissions of files that the user has a role that is not OWNER or NONE.
+	rpc GetUserPermissions(GetUserPermissionsRequest) returns (GetUserPermissionsResponse) {}
+
+	// IsPermitted returns true if userID is permitted to a fileID with the wanted role.
+	rpc IsPermitted(IsPermittedRequest) returns (IsPermittedResponse) {}
+
+	// DeleteFilePermissions deletes all permissions of a file and returns them.
+	rpc DeleteFilePermissions(DeleteFilePermissionsRequest) returns (DeleteFilePermissionsResponse) {}
+
+	// GetPermission returns a permission of the user to a file.
+	rpc GetPermission(GetPermissionRequest) returns (PermissionObject) {}
+}
+
+message CreatePermissionRequest {
+	// The ID of the file which is being permitted.
+	string fileID = 1;
+
+	// The ID of the user that's given the permission.
+	string userID = 2;
+
+	// The role of the permission.
+	Role role = 3;
+}
+
+message DeletePermissionRequest {
+	// The ID of the file which is being permitted.
+	string fileID = 1;
+
+	// The ID of the user that's given the permission.
+	string userID = 2;
+}
+
+message PermissionObject {
+	// The ID of the permission.
+	string id = 1;
+
+	// The ID of the file which is being pemitted.
+	string fileID = 2;
+
+	// The ID of the user that's given the permission.
+	string userID = 3;
+
+	// The role of the permission.
+	Role role = 4;
+}
+
+message GetPermissionRequest {
+	string fileID = 1;
+	string userID = 2;
+}
+
+message GetFilePermissionsRequest {
+	// The ID of the file which is being permitted.
+	string fileID = 1;
+}
+
+message GetFilePermissionsResponse {
+	// The role of a user.
+	message UserRole {
+		// The user ID.
+		string userID = 1;
+
+		// The role of the user.
+		Role role = 2;
+	}
+
+	// Array of user roles.
+	repeated UserRole permissions = 1;
+}
+
+message IsPermittedRequest {
+	// The ID of the file which is being permitted.
+	string fileID = 1;
+
+	// The ID of the user that's given the permission.
+	string userID = 2;
+
+	// The role of the permission.
+	Role role = 3;
+}
+
+message IsPermittedResponse {
+	bool permitted = 1;
+}
+
+message GetUserPermissionsRequest {
+	// The ID of the user to get its permissions.
+	string userID = 1;
+
+	// Filter permissions where the user was given a role of owner or not.
+	bool isOwner = 2;
+}
+
+message GetUserPermissionsResponse {
+	// The file of the permission and its role.
+	message FileRole {
+		// The file ID.
+		string fileID = 1;
+
+		// The role of the file permission.
+		Role role = 2;
+	}
+
+	// Array of files and their role.
+	repeated FileRole permissions = 1;
+}
+
+message DeleteFilePermissionsRequest {
+	string fileID = 1;
+}
+
+message DeleteFilePermissionsResponse {
+	repeated PermissionObject permissions = 1;
+}

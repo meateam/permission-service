@@ -1,0 +1,34 @@
+version: '2'
+services:
+  mongo:
+    image: mongo:4.2
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/db:/data/db
+  permission-service:
+    image: permission-service:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PORT: 8080
+      HOST_NAME: permission-service
+      MONGO_HOST: mongodb://mongo:27017/permission
+      ELASTICSEARCH_URL: http://localhost:9200
+      LOG_INDEX: kdrive
+      LOG_LEVEL: debug
+      HEALTH_CHECK_INTERVAL: 5
+      ELASTIC_APM_SERVER_URL: 'http://localhost:8200'
+      ELASTIC_APM_SERVICE_NAME: 'permission-service'
+      ELASTIC_APM_SERVICE_VERSION: '0.1'
+      ELASTIC_APM_ENVIRONMENT: 'development'
+      ELASTIC_APM_ACTIVE: 'true'
+      ELASTIC_APM_CAPTURE_BODY: 'all'
+      ELASTIC_APM_METRICS_INTERVAL: '10s'
+      ELASTIC_APM_IGNORE_URLS: '/grpc.health.v1.Health/Check'
+    ports:
+      - 8080:8080
+    depends_on:
+      - minio
+      

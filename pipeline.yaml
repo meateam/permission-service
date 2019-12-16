@@ -1,0 +1,6 @@
+repoName: "meateam/permission-service"
+runTests: true
+testCommand: ""
+deployUponTestSuccess: true
+deployCommand:
+deployEnvironment:
