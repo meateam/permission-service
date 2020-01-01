@@ -38,6 +38,7 @@ func (s Service) CreatePermission(ctx context.Context, req *pb.CreatePermissionR
 	fileID := req.GetFileID()
 	userID := req.GetUserID()
 	role := req.GetRole()
+	creator := req.GetCreator()
 	if userID == "" {
 		return nil, fmt.Errorf("userID is required")
 	}
@@ -50,7 +51,11 @@ func (s Service) CreatePermission(ctx context.Context, req *pb.CreatePermissionR
 		return nil, fmt.Errorf("role does not exist")
 	}
 
-	permission, err := s.controller.CreatePermission(ctx, fileID, userID, role)
+	if creator == "" {
+		return nil, fmt.Errorf("creator is required")
+	}
+
+	permission, err := s.controller.CreatePermission(ctx, fileID, userID, role, creator)
 	if err != nil {
 		return nil, err
 	}

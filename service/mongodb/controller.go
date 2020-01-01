@@ -29,9 +29,13 @@ func NewMongoController(db *mongo.Database) (Controller, error) {
 }
 
 // CreatePermission creates a Permission in store and returns its unique ID.
-func (c Controller) CreatePermission(ctx context.Context, fileID string, userID string, role pb.Role) (service.Permission, error) {
-	// Create the root permission.
-	permission := &BSON{FileID: fileID, UserID: userID, Role: role}
+func (c Controller) CreatePermission(
+	ctx context.Context,
+	fileID string,
+	userID string,
+	role pb.Role,
+	creator string) (service.Permission, error) {
+	permission := &BSON{FileID: fileID, UserID: userID, Role: role, Creator: creator}
 	createdPermission, err := c.store.Create(ctx, permission)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating permission: %v", err)
@@ -40,8 +44,11 @@ func (c Controller) CreatePermission(ctx context.Context, fileID string, userID 
 	return createdPermission, nil
 }
 
-// GetByFileAndUser retrieves the permissoin that matches fileID and userID, and any error if occured.
-func (c Controller) GetByFileAndUser(ctx context.Context, fileID string, userID string) (service.Permission, error) {
+// GetByFileAndUser retrieves the permissoin that matches fileID and userID, and any error if occurred.
+func (c Controller) GetByFileAndUser(
+	ctx context.Context,
+	fileID string,
+	userID string) (service.Permission, error) {
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONFileIDField,

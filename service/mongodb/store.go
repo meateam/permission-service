@@ -27,6 +27,9 @@ const (
 
 	// PermissionBSONRoleField is the name of the role field in BSON.
 	PermissionBSONRoleField = "role"
+
+	// PermissionBSONCreatorField is the name of the creator field in BSON.
+	PermissionBSONCreatorField = "creator"
 )
 
 // MongoStore holds the mongodb database and implements Store interface.
@@ -90,6 +93,11 @@ func (s MongoStore) Create(ctx context.Context, permission service.Permission) (
 		return nil, fmt.Errorf("role does not exist")
 	}
 
+	creator := permission.GetCreator()
+	if userID == "" {
+		return nil, fmt.Errorf("creator is required")
+	}
+
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONFileIDField,
@@ -113,6 +121,10 @@ func (s MongoStore) Create(ctx context.Context, permission service.Permission) (
 		bson.E{
 			Key:   PermissionBSONRoleField,
 			Value: role,
+		},
+		bson.E{
+			Key:   PermissionBSONCreatorField,
+			Value: creator,
 		},
 	}
 

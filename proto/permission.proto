@@ -40,6 +40,9 @@ message CreatePermissionRequest {
 
 	// The role of the permission.
 	Role role = 3;
+
+	// The ID of the user that created the permission.
+	string creator = 4;
 }
 
 message DeletePermissionRequest {
@@ -62,6 +65,9 @@ message PermissionObject {
 
 	// The role of the permission.
 	Role role = 4;
+
+	// The ID of the user that created the permission.
+	string creator = 5;
 }
 
 message GetPermissionRequest {
