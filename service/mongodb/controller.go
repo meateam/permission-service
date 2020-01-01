@@ -123,8 +123,9 @@ func (c Controller) GetFilePermissions(ctx context.Context,
 	returnedPermissions := make([]*pb.GetFilePermissionsResponse_UserRole, 0, len(filePermissions))
 	for _, permission := range filePermissions {
 		returnedPermissions = append(returnedPermissions, &pb.GetFilePermissionsResponse_UserRole{
-			UserID: permission.GetUserID(),
-			Role:   permission.GetRole(),
+			UserID:  permission.GetUserID(),
+			Role:    permission.GetRole(),
+			Creator: permission.GetCreator(),
 		})
 	}
 	return returnedPermissions, nil
@@ -150,8 +151,9 @@ func (c Controller) GetUserPermissions(
 	filePermissions := make([]*pb.GetUserPermissionsResponse_FileRole, 0, len(permissions))
 	for _, permission := range permissions {
 		filePermissions = append(filePermissions, &pb.GetUserPermissionsResponse_FileRole{
-			FileID: permission.GetFileID(),
-			Role:   permission.GetRole(),
+			FileID:  permission.GetFileID(),
+			Role:    permission.GetRole(),
+			Creator: permission.GetCreator(),
 		})
 	}
 
@@ -193,10 +195,11 @@ func (c Controller) DeleteFilePermissions(ctx context.Context,
 		}
 
 		protoDeletedPermission := &pb.PermissionObject{
-			Id:     deletedPermission.GetID(),
-			FileID: deletedPermission.GetFileID(),
-			UserID: deletedPermission.GetUserID(),
-			Role:   deletedPermission.GetRole(),
+			Id:      deletedPermission.GetID(),
+			FileID:  deletedPermission.GetFileID(),
+			UserID:  deletedPermission.GetUserID(),
+			Role:    deletedPermission.GetRole(),
+			Creator: deletedPermission.GetCreator(),
 		}
 		deletedPermissions = append(deletedPermissions, protoDeletedPermission)
 	}
