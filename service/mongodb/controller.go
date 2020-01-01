@@ -66,7 +66,7 @@ func (c Controller) GetByFileAndUser(
 	}
 
 	if err == mongo.ErrNoDocuments {
-		return nil, status.Error(codes.Unimplemented, "permission not found")
+		return nil, status.Error(codes.NotFound, "permission not found")
 	}
 
 	return permission, nil
@@ -92,7 +92,7 @@ func (c Controller) DeletePermission(ctx context.Context, fileID string, userID 
 	}
 
 	if err == mongo.ErrNoDocuments {
-		return nil, status.Error(codes.Unimplemented, "permission not found")
+		return nil, status.Error(codes.NotFound, "permission not found")
 	}
 
 	return permission, nil

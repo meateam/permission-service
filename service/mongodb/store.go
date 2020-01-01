@@ -148,7 +148,7 @@ func (s MongoStore) Create(ctx context.Context, permission service.Permission) (
 
 // Get finds one permission that matches filter,
 // if successful returns the permission, and a nil error,
-// if the permission is not found it would return nil and unimplemented error,
+// if the permission is not found it would return nil and NotFound error,
 // otherwise returns nil and non-nil error if any occured.
 func (s MongoStore) Get(ctx context.Context, filter interface{}) (service.Permission, error) {
 	collection := s.DB.Collection(PermissionCollectionName)
