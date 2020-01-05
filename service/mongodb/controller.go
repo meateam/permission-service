@@ -136,7 +136,7 @@ func (c Controller) GetFilePermissions(ctx context.Context,
 }
 
 // GetUserPermissions returns a slice of FileRole,
-// otherwise returns nil and any error if occured.
+// otherwise returns nil and any error if occurred.
 func (c Controller) GetUserPermissions(
 	ctx context.Context,
 	userID string) ([]*pb.GetUserPermissionsResponse_FileRole, error) {
