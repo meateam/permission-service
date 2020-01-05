@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Controller is the permisison service business logic implementation using MongoStore.
+// Controller is the permissions service business logic implementation using MongoStore.
 type Controller struct {
 	store MongoStore
 }
@@ -74,7 +74,11 @@ func (c Controller) GetByFileAndUser(
 
 // DeletePermission deletes the permission in store that matches fileID and userID
 // and returns the deleted permission.
-func (c Controller) DeletePermission(ctx context.Context, fileID string, userID string) (service.Permission, error) {
+func (c Controller) DeletePermission(
+	ctx context.Context,
+	fileID string,
+	userID string,
+) (service.Permission, error) {
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONFileIDField,
@@ -99,13 +103,13 @@ func (c Controller) DeletePermission(ctx context.Context, fileID string, userID 
 }
 
 // HealthCheck runs store's healthcheck and returns true if healthy, otherwise returns false
-// and any error if occured.
+// and any error if occurred.
 func (c Controller) HealthCheck(ctx context.Context) (bool, error) {
 	return c.store.HealthCheck(ctx)
 }
 
 // GetFilePermissions returns a slice of UserRole,
-// otherwise returns nil and any error if occured.
+// otherwise returns nil and any error if occurred.
 func (c Controller) GetFilePermissions(ctx context.Context,
 	fileID string) ([]*pb.GetFilePermissionsResponse_UserRole, error) {
 	filter := bson.D{

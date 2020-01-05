@@ -192,9 +192,7 @@ func serverLoggerInterceptor(logger *logrus.Logger) []grpc.ServerOption {
 	logrusEntry := logrus.NewEntry(logger)
 
 	ignorePayload := ilogger.IgnoreServerMethodsDecider(
-		append(
-			strings.Split(viper.GetString(configElasticAPMIgnoreURLS), ","),
-		)...,
+		strings.Split(viper.GetString(configElasticAPMIgnoreURLS), ",")...,
 	)
 
 	ignoreInitialRequest := ilogger.IgnoreServerMethodsDecider(
