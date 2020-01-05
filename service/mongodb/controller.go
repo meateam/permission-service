@@ -34,9 +34,8 @@ func (c Controller) CreatePermission(
 	fileID string,
 	userID string,
 	role pb.Role,
-) (service.Permission, error) {
-	// Create the root permission.
-	permission := &BSON{FileID: fileID, UserID: userID, Role: role}
+	creator string) (service.Permission, error) {
+	permission := &BSON{FileID: fileID, UserID: userID, Role: role, Creator: creator}
 	createdPermission, err := c.store.Create(ctx, permission)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating permission: %v", err)
@@ -49,8 +48,7 @@ func (c Controller) CreatePermission(
 func (c Controller) GetByFileAndUser(
 	ctx context.Context,
 	fileID string,
-	userID string,
-) (service.Permission, error) {
+	userID string) (service.Permission, error) {
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONFileIDField,
@@ -68,7 +66,7 @@ func (c Controller) GetByFileAndUser(
 	}
 
 	if err == mongo.ErrNoDocuments {
-		return nil, status.Error(codes.Unimplemented, "permission not found")
+		return nil, status.Error(codes.NotFound, "permission not found")
 	}
 
 	return permission, nil
@@ -98,7 +96,7 @@ func (c Controller) DeletePermission(
 	}
 
 	if err == mongo.ErrNoDocuments {
-		return nil, status.Error(codes.Unimplemented, "permission not found")
+		return nil, status.Error(codes.NotFound, "permission not found")
 	}
 
 	return permission, nil
@@ -129,8 +127,9 @@ func (c Controller) GetFilePermissions(ctx context.Context,
 	returnedPermissions := make([]*pb.GetFilePermissionsResponse_UserRole, 0, len(filePermissions))
 	for _, permission := range filePermissions {
 		returnedPermissions = append(returnedPermissions, &pb.GetFilePermissionsResponse_UserRole{
-			UserID: permission.GetUserID(),
-			Role:   permission.GetRole(),
+			UserID:  permission.GetUserID(),
+			Role:    permission.GetRole(),
+			Creator: permission.GetCreator(),
 		})
 	}
 	return returnedPermissions, nil
@@ -138,29 +137,14 @@ func (c Controller) GetFilePermissions(ctx context.Context,
 
 // GetUserPermissions returns a slice of FileRole,
 // otherwise returns nil and any error if occurred.
-func (c Controller) GetUserPermissions(ctx context.Context,
-	userID string, isOwner bool) ([]*pb.GetUserPermissionsResponse_FileRole, error) {
+func (c Controller) GetUserPermissions(
+	ctx context.Context,
+	userID string) ([]*pb.GetUserPermissionsResponse_FileRole, error) {
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONUserIDField,
 			Value: userID,
 		},
-	}
-
-	if isOwner {
-		filter = append(filter, bson.E{
-			Key:   PermissionBSONRoleField,
-			Value: pb.Role_OWNER,
-		})
-	} else {
-		filter = append(filter,
-			bson.E{
-				Key: PermissionBSONRoleField,
-				Value: bson.M{
-					"$nin": bson.A{pb.Role_OWNER, pb.Role_NONE},
-				},
-			},
-		)
 	}
 
 	permissions, err := c.store.GetAll(ctx, filter)
@@ -171,8 +155,9 @@ func (c Controller) GetUserPermissions(ctx context.Context,
 	filePermissions := make([]*pb.GetUserPermissionsResponse_FileRole, 0, len(permissions))
 	for _, permission := range permissions {
 		filePermissions = append(filePermissions, &pb.GetUserPermissionsResponse_FileRole{
-			FileID: permission.GetFileID(),
-			Role:   permission.GetRole(),
+			FileID:  permission.GetFileID(),
+			Role:    permission.GetRole(),
+			Creator: permission.GetCreator(),
 		})
 	}
 
@@ -214,10 +199,11 @@ func (c Controller) DeleteFilePermissions(ctx context.Context,
 		}
 
 		protoDeletedPermission := &pb.PermissionObject{
-			Id:     deletedPermission.GetID(),
-			FileID: deletedPermission.GetFileID(),
-			UserID: deletedPermission.GetUserID(),
-			Role:   deletedPermission.GetRole(),
+			Id:      deletedPermission.GetID(),
+			FileID:  deletedPermission.GetFileID(),
+			UserID:  deletedPermission.GetUserID(),
+			Role:    deletedPermission.GetRole(),
+			Creator: deletedPermission.GetCreator(),
 		}
 		deletedPermissions = append(deletedPermissions, protoDeletedPermission)
 	}

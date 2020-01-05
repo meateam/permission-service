@@ -22,5 +22,9 @@ type Permission interface {
 
 	SetRole(role pb.Role) error
 
+	GetCreator() string
+
+	SetCreator(creator string) error
+
 	MarshalProto(permission *pb.PermissionObject) error
 }

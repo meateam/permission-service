@@ -9,10 +9,11 @@ import (
 
 // BSON is the structure that represents a permission as it's stored.
 type BSON struct {
-	FileID string             `bson:"fileID,omitempty"`
-	UserID string             `bson:"userID,omitempty"`
-	Role   pb.Role            `bson:"role"`
-	ID     primitive.ObjectID `bson:"_id,omitempty"`
+	ID      primitive.ObjectID `bson:"_id,omitempty"`
+	FileID  string             `bson:"fileID,omitempty"`
+	UserID  string             `bson:"userID,omitempty"`
+	Role    pb.Role            `bson:"role"`
+	Creator string             `bson:"creator"`
 }
 
 // GetID returns the string value of the b.ID.
@@ -96,12 +97,32 @@ func (b *BSON) SetRole(role pb.Role) error {
 	return nil
 }
 
+// GetCreator returns b.Creator.
+func (b BSON) GetCreator() string {
+	return b.Creator
+}
+
+// SetCreator sets b.Creator to creator.
+func (b *BSON) SetCreator(creator string) error {
+	if b == nil {
+		panic("b == nil")
+	}
+
+	if creator == "" {
+		return fmt.Errorf("Creator is required")
+	}
+
+	b.Creator = creator
+	return nil
+}
+
 // MarshalProto marshals b into a permission.
 func (b BSON) MarshalProto(permission *pb.PermissionObject) error {
 	permission.Id = b.GetID()
 	permission.FileID = b.GetFileID()
 	permission.UserID = b.GetUserID()
 	permission.Role = b.GetRole()
+	permission.Creator = b.GetCreator()
 
 	return nil
 }

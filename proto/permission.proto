@@ -4,9 +4,8 @@ package permission;
 
 enum Role {
 	NONE = 0;
-	OWNER = 1;
-	WRITE = 2;
-	READ = 3;
+	WRITE = 1;
+	READ = 2;
 }
 
 service Permission {
@@ -19,9 +18,7 @@ service Permission {
 	// GetFilePermissions returns the users and their role that have a permission to fileID.
 	rpc GetFilePermissions(GetFilePermissionsRequest) returns (GetFilePermissionsResponse) {}
 
-	// GetUserPermissions returns the files that the user was given permission to,
-	// if IsOwner is true, returns the permissions of files that the user has a role of OWNER,
-	// otherwise returns the permissions of files that the user has a role that is not OWNER or NONE.
+	// GetUserPermissions returns the files that the user was given permission to.
 	rpc GetUserPermissions(GetUserPermissionsRequest) returns (GetUserPermissionsResponse) {}
 
 	// IsPermitted returns true if userID is permitted to a fileID with the wanted role.
@@ -43,6 +40,9 @@ message CreatePermissionRequest {
 
 	// The role of the permission.
 	Role role = 3;
+
+	// The ID of the user that created the permission.
+	string creator = 4;
 }
 
 message DeletePermissionRequest {
@@ -65,6 +65,9 @@ message PermissionObject {
 
 	// The role of the permission.
 	Role role = 4;
+
+	// The ID of the user that created the permission.
+	string creator = 5;
 }
 
 message GetPermissionRequest {
@@ -85,6 +88,9 @@ message GetFilePermissionsResponse {
 
 		// The role of the user.
 		Role role = 2;
+
+		// The creator of the permission.
+		string creator = 3;
 	}
 
 	// Array of user roles.
@@ -109,9 +115,6 @@ message IsPermittedResponse {
 message GetUserPermissionsRequest {
 	// The ID of the user to get its permissions.
 	string userID = 1;
-
-	// Filter permissions where the user was given a role of owner or not.
-	bool isOwner = 2;
 }
 
 message GetUserPermissionsResponse {
@@ -122,6 +125,9 @@ message GetUserPermissionsResponse {
 
 		// The role of the file permission.
 		Role role = 2;
+
+		// The creator of the permission.
+		string creator = 3;
 	}
 
 	// Array of files and their role.
