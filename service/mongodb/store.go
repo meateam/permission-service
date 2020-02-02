@@ -75,8 +75,9 @@ func (s MongoStore) HealthCheck(ctx context.Context) (bool, error) {
 // Create creates a permission of a file to a user,
 // If permission already exists then it's updated to have permission values,
 // If successful returns the permission and a nil error,
+// Overrides indicates whether to update the permission if already exists, or not and return error.
 // otherwise returns empty string and non-nil error if any occurred.
-func (s MongoStore) Create(ctx context.Context, permission service.Permission) (service.Permission, error) {
+func (s MongoStore) Create(ctx context.Context, permission service.Permission, override bool) (service.Permission, error) {
 	collection := s.DB.Collection(PermissionCollectionName)
 	fileID := permission.GetFileID()
 	if fileID == "" {
@@ -135,15 +136,27 @@ func (s MongoStore) Create(ctx context.Context, permission service.Permission) (
 		},
 	}
 
-	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
-	result := collection.FindOneAndUpdate(ctx, filter, update, opts)
-	newPermission := &BSON{}
-	err := result.Decode(newPermission)
+	if override == true {
+		opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
+		result := collection.FindOneAndUpdate(ctx, filter, update, opts)
+		newPermission := &BSON{}
+		err := result.Decode(newPermission)
+		if err != nil {
+			return nil, err
+		}
+
+		return newPermission, nil
+	}
+
+	opts := options.InsertOne()
+	_, err := collection.InsertOne(ctx, permissionUpdate, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	return newPermission, nil
+	fmt.Printf("%+v\n", permission)
+
+	return permission, nil
 }
 
 // Get finds one permission that matches filter,

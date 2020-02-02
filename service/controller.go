@@ -13,7 +13,8 @@ type Controller interface {
 		fileID string,
 		userID string,
 		role pb.Role,
-		creator string) (Permission, error)
+		creator string,
+		override bool) (Permission, error)
 	DeletePermission(ctx context.Context, fileID string, userID string) (Permission, error)
 	GetFilePermissions(ctx context.Context, fileID string) ([]*pb.GetFilePermissionsResponse_UserRole, error)
 	GetByFileAndUser(ctx context.Context, fileID string, userID string) (Permission, error)
