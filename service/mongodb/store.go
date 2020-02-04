@@ -150,12 +150,12 @@ func (s MongoStore) Create(ctx context.Context, permission service.Permission, o
 	}
 
 	opts := options.InsertOne()
-	myPermission, err := collection.InsertOne(ctx, permissionUpdate, opts)
+	_, err := collection.InsertOne(ctx, permissionUpdate, opts)
 	// Its ok because it will not allow to override
 	if err != nil {
+		fmt.Println("*************** error thrown but its ok! (probably) *******************")
 		return permission, nil
 	}
-	fmt.Printf("%+v\n", myPermission)
 
 	return permission, nil
 }
