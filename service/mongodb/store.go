@@ -145,16 +145,17 @@ func (s MongoStore) Create(ctx context.Context, permission service.Permission, o
 			return nil, err
 		}
 
+		fmt.Printf("%+v\n", newPermission)
 		return newPermission, nil
 	}
 
 	opts := options.InsertOne()
-	_, err := collection.InsertOne(ctx, permissionUpdate, opts)
+	myPermission, err := collection.InsertOne(ctx, permissionUpdate, opts)
+	// Its ok because it will not allow to override
 	if err != nil {
-		return nil, err
+		return permission, nil
 	}
-
-	fmt.Printf("%+v\n", permission)
+	fmt.Printf("%+v\n", myPermission)
 
 	return permission, nil
 }
