@@ -77,7 +77,11 @@ func (s MongoStore) HealthCheck(ctx context.Context) (bool, error) {
 // If successful returns the permission and a nil error,
 // Overrides indicates whether to update the permission if already exists, or not and return error.
 // otherwise returns empty string and non-nil error if any occurred.
-func (s MongoStore) Create(ctx context.Context, permission service.Permission, override bool) (service.Permission, error) {
+func (s MongoStore) Create(
+	ctx context.Context,
+	permission service.Permission,
+	override bool,
+) (service.Permission, error) {
 	collection := s.DB.Collection(PermissionCollectionName)
 	fileID := permission.GetFileID()
 	if fileID == "" {
@@ -136,7 +140,7 @@ func (s MongoStore) Create(ctx context.Context, permission service.Permission, o
 		},
 	}
 
-	if override == true {
+	if override {
 		opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 		result := collection.FindOneAndUpdate(ctx, filter, update, opts)
 		newPermission := &BSON{}
