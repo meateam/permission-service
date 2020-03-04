@@ -42,6 +42,8 @@ func (s Service) CreatePermission(
 	userID := req.GetUserID()
 	role := req.GetRole()
 	creator := req.GetCreator()
+	override := req.GetOverride()
+
 	if userID == "" {
 		return nil, fmt.Errorf("userID is required")
 	}
@@ -58,7 +60,7 @@ func (s Service) CreatePermission(
 		return nil, fmt.Errorf("creator is required")
 	}
 
-	permission, err := s.controller.CreatePermission(ctx, fileID, userID, role, creator)
+	permission, err := s.controller.CreatePermission(ctx, fileID, userID, role, creator, override)
 	if err != nil {
 		return nil, err
 	}

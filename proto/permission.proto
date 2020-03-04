@@ -43,6 +43,9 @@ message CreatePermissionRequest {
 
 	// The ID of the user that created the permission.
 	string creator = 4;
+
+	// Signifies wether or not to override the permission if already exists.
+	bool override = 5;
 }
 
 message DeletePermissionRequest {
