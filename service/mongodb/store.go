@@ -75,7 +75,7 @@ func (s MongoStore) HealthCheck(ctx context.Context) (bool, error) {
 // Create creates a permission of a file to a user,
 // If permission already exists then it's updated to have permission values,
 // If successful returns the permission and a nil error,
-// Overrides indicates whether to update the permission if already exists, or not and return error.
+// Override indicates whether to update the permission if already exists, or not and return error.
 // otherwise returns empty string and non-nil error if any occurred.
 func (s MongoStore) Create(
 	ctx context.Context,
@@ -114,7 +114,7 @@ func (s MongoStore) Create(
 		},
 	}
 
-	permissionUpdate := bson.D{
+	newPermission := bson.D{
 		bson.E{
 			Key:   PermissionBSONFileIDField,
 			Value: fileID,
@@ -136,32 +136,34 @@ func (s MongoStore) Create(
 	update := bson.D{
 		bson.E{
 			Key:   "$set",
-			Value: permissionUpdate,
+			Value: newPermission,
 		},
 	}
 
-	if override {
-		opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
-		result := collection.FindOneAndUpdate(ctx, filter, update, opts)
-		newPermission := &BSON{}
-		err := result.Decode(newPermission)
-		if err != nil {
+	// In case override is false, check if there is a permission, and if there is one, return it.
+	if !override {
+		existingPermission, err := s.Get(ctx, filter)
+		if err != nil && err != mongo.ErrNoDocuments {
 			return nil, err
 		}
 
-		fmt.Printf("%+v\n", newPermission)
-		return newPermission, nil
+		if err == nil {
+			return existingPermission, nil
+		}
 	}
 
-	opts := options.InsertOne()
-	_, err := collection.InsertOne(ctx, permissionUpdate, opts)
-	// Its ok because it will not allow to override
+	// If override is true, or false and there is no permission existing,
+	// then update and allow to override the permission fields
+	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
+	result := collection.FindOneAndUpdate(ctx, filter, update, opts)
+
+	updatedPermission := &BSON{}
+	err := result.Decode(updatedPermission)
 	if err != nil {
-		fmt.Println("*************** error thrown but its ok! (probably) *******************")
-		return permission, nil
+		return nil, err
 	}
 
-	return permission, nil
+	return updatedPermission, nil
 }
 
 // Get finds one permission that matches filter,
