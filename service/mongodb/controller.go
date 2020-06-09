@@ -34,9 +34,10 @@ func (c Controller) CreatePermission(
 	fileID string,
 	userID string,
 	role pb.Role,
-	creator string) (service.Permission, error) {
+	creator string,
+	override bool) (service.Permission, error) {
 	permission := &BSON{FileID: fileID, UserID: userID, Role: role, Creator: creator}
-	createdPermission, err := c.store.Create(ctx, permission)
+	createdPermission, err := c.store.Create(ctx, permission, override)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating permission: %v", err)
 	}

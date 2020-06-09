@@ -75,8 +75,13 @@ func (s MongoStore) HealthCheck(ctx context.Context) (bool, error) {
 // Create creates a permission of a file to a user,
 // If permission already exists then it's updated to have permission values,
 // If successful returns the permission and a nil error,
+// Override indicates whether to update the permission if already exists, or not and return error.
 // otherwise returns empty string and non-nil error if any occurred.
-func (s MongoStore) Create(ctx context.Context, permission service.Permission) (service.Permission, error) {
+func (s MongoStore) Create(
+	ctx context.Context,
+	permission service.Permission,
+	override bool,
+) (service.Permission, error) {
 	collection := s.DB.Collection(PermissionCollectionName)
 	fileID := permission.GetFileID()
 	if fileID == "" {
@@ -109,7 +114,7 @@ func (s MongoStore) Create(ctx context.Context, permission service.Permission) (
 		},
 	}
 
-	permissionUpdate := bson.D{
+	newPermission := bson.D{
 		bson.E{
 			Key:   PermissionBSONFileIDField,
 			Value: fileID,
@@ -131,19 +136,34 @@ func (s MongoStore) Create(ctx context.Context, permission service.Permission) (
 	update := bson.D{
 		bson.E{
 			Key:   "$set",
-			Value: permissionUpdate,
+			Value: newPermission,
 		},
 	}
 
+	// In case override is false, check if there is a permission, and if there is one, return it.
+	if !override {
+		existingPermission, err := s.Get(ctx, filter)
+		if err != nil && err != mongo.ErrNoDocuments {
+			return nil, err
+		}
+
+		if err == nil {
+			return existingPermission, nil
+		}
+	}
+
+	// If override is true, or false and there is no permission existing,
+	// then update and allow to override the permission fields
 	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 	result := collection.FindOneAndUpdate(ctx, filter, update, opts)
-	newPermission := &BSON{}
-	err := result.Decode(newPermission)
+
+	updatedPermission := &BSON{}
+	err := result.Decode(updatedPermission)
 	if err != nil {
 		return nil, err
 	}
 
-	return newPermission, nil
+	return updatedPermission, nil
 }
 
 // Get finds one permission that matches filter,
