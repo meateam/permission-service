@@ -44,8 +44,8 @@ pipeline {
           }
         }
         steps{  
-          withCredentials([usernamePassword(credentialsId:'ISRAEL_ACR',usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-            sh "docker login   DRIVE.azurecr.io -u ${USER} -p ${PASS}"
+          withCredentials([usernamePassword(credentialsId:'DRIVE_ACR',usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+            sh "docker login drivehub.azurecr.io -u ${USER} -p ${PASS}"
           }
         }
       }  
