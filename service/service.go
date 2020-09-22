@@ -91,6 +91,29 @@ func (s Service) GetFilePermissions(
 	return &pb.GetFilePermissionsResponse{Permissions: filePermissions}, nil
 }
 
+// GetPermissionByMongoID is the request handler for getting permission by its mongo ID.
+func (s Service) GetPermissionByMongoID(
+	ctx context.Context,
+	req *pb.GetPermissionByMongoIDRequest,
+) (*pb.PermissionObject, error) {
+	mongoID := req.GetMongoID()
+	if mongoID == "" {
+		return nil, fmt.Errorf("mongoID is required")
+	}
+
+	permission, err := s.controller.GetPermissionByMongoID(ctx, mongoID)
+	if err != nil {
+		return nil, err
+	}
+
+	var response pb.PermissionObject
+	if err = permission.MarshalProto(&response); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
 // DeletePermission is the request handler for deleting permission by its ID.
 func (s Service) DeletePermission(
 	ctx context.Context, req *pb.DeletePermissionRequest,
