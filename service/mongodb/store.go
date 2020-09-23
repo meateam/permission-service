@@ -32,7 +32,7 @@ const (
 	PermissionBSONCreatorField = "creator"
 )
 
-// MongoStore holds the mongodb database and implements Store .interface
+// MongoStore holds the mongodb database and implements Store interface.
 type MongoStore struct {
 	DB *mongo.Database
 }
