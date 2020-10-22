@@ -163,12 +163,36 @@ func (c Controller) GetFilePermissions(ctx context.Context,
 // otherwise returns nil and any error if occurred.
 func (c Controller) GetUserPermissions(
 	ctx context.Context,
-	userID string) ([]*pb.GetUserPermissionsResponse_FileRole, error) {
+	userID string, pageNum int64, pageSize int64) (*pb.GetUserPermissionsResponse, error) {
+
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONUserIDField,
 			Value: userID,
 		},
+	}
+
+	if pageNum >= 0 || pageSize >= 0 {
+		// Check if one is negative and the other is not
+		if (pageNum < 0 && pageSize >= 0) || (pageNum >= 0 && pageSize < 0) {
+			return nil, fmt.Errorf("pageNum %d and pageSize %d must both be either non-negative or negative", pageNum, pageSize)
+		}
+		// Get permissions by page, sorted by mongoID
+		pageRes, err := c.store.GetUserPermissionsByPage(ctx, pageNum, pageSize, bson.D{bson.E{Key: MongoObjectIDField, Value: 1}}, filter)
+		if err != nil {
+			return nil, err
+		}
+
+		// Go over the page of permissions received and reformat them
+		filePermissions := make([]*pb.GetUserPermissionsResponse_FileRole, 0, len(pageRes.permissions))
+		for _, permission := range pageRes.permissions {
+			filePermissions = append(filePermissions, &pb.GetUserPermissionsResponse_FileRole{
+				FileID:  permission.GetFileID(),
+				Role:    permission.GetRole(),
+				Creator: permission.GetCreator(),
+			})
+		}
+		return &pb.GetUserPermissionsResponse{Permissions: filePermissions, ItemCount: pageRes.itemCount, PageNum: pageRes.pageNum}, nil
 	}
 
 	permissions, err := c.store.GetAll(ctx, filter)
@@ -185,7 +209,7 @@ func (c Controller) GetUserPermissions(
 		})
 	}
 
-	return filePermissions, nil
+	return &pb.GetUserPermissionsResponse{Permissions: filePermissions, ItemCount: -1, PageNum: -1}, nil
 }
 
 // DeleteFilePermissions deletes all permissions that exist for fileID and

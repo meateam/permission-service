@@ -198,16 +198,22 @@ func (s Service) GetUserPermissions(
 	ctx context.Context,
 	req *pb.GetUserPermissionsRequest) (*pb.GetUserPermissionsResponse, error) {
 	userID := req.GetUserID()
+	pageNum := req.GetPageNum()
+	pageSize := req.GetPageSize()
+
 	if userID == "" {
 		return nil, fmt.Errorf("userID is required")
 	}
 
-	permissions, err := s.controller.GetUserPermissions(ctx, userID)
+	permissions, err := s.controller.GetUserPermissions(ctx, userID, pageNum, pageSize)
 	if err != nil {
 		return nil, err
 	}
 
-	return &pb.GetUserPermissionsResponse{Permissions: permissions}, nil
+	return &pb.GetUserPermissionsResponse{
+		Permissions: permissions.Permissions,
+		ItemCount:   permissions.ItemCount,
+		PageNum:     permissions.PageNum}, nil
 }
 
 // DeleteFilePermissions is the request handler for deleting all permissions that exist for a certain file.

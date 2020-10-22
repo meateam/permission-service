@@ -30,6 +30,7 @@ service Permission {
 	// GetPermission returns a permission of the user to a file.
 	rpc GetPermission(GetPermissionRequest) returns (PermissionObject) {}
 
+	// GetPermission returns a permission of by its mongoID.
 	rpc GetPermissionByMongoID(GetPermissionByMongoIDRequest) returns (PermissionObject) {}
 }
 
@@ -124,6 +125,12 @@ message IsPermittedResponse {
 message GetUserPermissionsRequest {
 	// The ID of the user to get its permissions.
 	string userID = 1;
+
+	// The page number requested. 
+	int64 pageNum = 2;
+
+	// The number of documents per page.
+	int64 pageSize = 3;
 }
 
 message GetUserPermissionsResponse {
@@ -141,6 +148,12 @@ message GetUserPermissionsResponse {
 
 	// Array of files and their role.
 	repeated FileRole permissions = 1;
+
+	// the number of items found as a result.
+	int64 itemCount = 2;
+
+	// The page number requested.
+	int64 pageNum = 3;
 }
 
 message DeleteFilePermissionsRequest {
