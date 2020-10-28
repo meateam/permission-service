@@ -73,6 +73,29 @@ func (c Controller) GetByFileAndUser(
 	return permission, nil
 }
 
+// GetPermissionByMongoID retrieves the permissoin by the recived mongo id.
+func (c Controller) GetPermissionByMongoID(
+	ctx context.Context,
+	mongoID string) (service.Permission, error) {
+	filter := bson.D{
+		bson.E{
+			Key:   MongoObjectIDField,
+			Value: mongoID,
+		},
+	}
+
+	permission, err := c.store.Get(ctx, filter)
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, err
+	}
+
+	if err == mongo.ErrNoDocuments {
+		return nil, status.Error(codes.NotFound, "permission not found")
+	}
+
+	return permission, nil
+}
+
 // DeletePermission deletes the permission in store that matches fileID and userID
 // and returns the deleted permission.
 func (c Controller) DeletePermission(
