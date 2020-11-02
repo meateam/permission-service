@@ -26,5 +26,13 @@ type Permission interface {
 
 	SetCreator(creator string) error
 
+	GetCreatedAt() string
+
+	SetCreatedAt(createdAt string) error
+
+	GetUpdatedAt() string
+
+	SetUpdatedAt(updatedAt string) error
+
 	MarshalProto(permission *pb.PermissionObject) error
 }

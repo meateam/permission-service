@@ -73,6 +73,12 @@ message PermissionObject {
 
 	// The ID of the user that created the permission.
 	string creator = 5;
+
+	// The last upadated date of the permission.
+	string UpdatedAt = 6;
+
+	// The created date of the permission.
+	string CreatedAt = 7;
 }
 
 message GetPermissionRequest {

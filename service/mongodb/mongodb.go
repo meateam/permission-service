@@ -9,11 +9,13 @@ import (
 
 // BSON is the structure that represents a permission as it's stored.
 type BSON struct {
-	ID      primitive.ObjectID `bson:"_id,omitempty"`
-	FileID  string             `bson:"fileID,omitempty"`
-	UserID  string             `bson:"userID,omitempty"`
-	Role    pb.Role            `bson:"role"`
-	Creator string             `bson:"creator"`
+	ID        primitive.ObjectID `bson:"_id,omitempty"`
+	FileID    string             `bson:"fileID,omitempty"`
+	UserID    string             `bson:"userID,omitempty"`
+	Role      pb.Role            `bson:"role"`
+	Creator   string             `bson:"creator"`
+	UpdatedAt string             `bson:"updatedAt"`
+	CreatedAt string             `bson:"createdAt"`
 }
 
 // GetID returns the string value of the b.ID.
@@ -116,6 +118,40 @@ func (b *BSON) SetCreator(creator string) error {
 	return nil
 }
 
+func (b BSON) GetUpdatedAt() string {
+	return b.UpdatedAt
+}
+
+func (b *BSON) SetUpdatedAt(updatedAt string) error {
+	if b == nil {
+		panic("b == nil")
+	}
+
+	if updatedAt == "" {
+		return fmt.Errorf("UpdatedAt is required")
+	}
+
+	b.UpdatedAt = updatedAt
+	return nil
+}
+
+func (b BSON) GetCreatedAt() string {
+	return b.CreatedAt
+}
+
+func (b *BSON) SetCreatedAt(createdAt string) error {
+	if b == nil {
+		panic("b == nil")
+	}
+
+	if createdAt == "" {
+		return fmt.Errorf("CreatedAt is required")
+	}
+
+	b.CreatedAt = createdAt
+	return nil
+}
+
 // MarshalProto marshals b into a permission.
 func (b BSON) MarshalProto(permission *pb.PermissionObject) error {
 	permission.Id = b.GetID()
@@ -123,6 +159,8 @@ func (b BSON) MarshalProto(permission *pb.PermissionObject) error {
 	permission.UserID = b.GetUserID()
 	permission.Role = b.GetRole()
 	permission.Creator = b.GetCreator()
+	permission.CreatedAt = b.GetCreatedAt()
+	permission.UpdatedAt = b.GetUpdatedAt()
 
 	return nil
 }

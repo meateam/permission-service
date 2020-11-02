@@ -3,6 +3,7 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"time"
 
 	pb "github.com/meateam/permission-service/proto"
 	"github.com/meateam/permission-service/service"
@@ -30,6 +31,10 @@ const (
 
 	// PermissionBSONCreatorField is the name of the creator field in BSON.
 	PermissionBSONCreatorField = "creator"
+
+	PermissionBSONUpdatedAtField = "updatedAt"
+
+	PermissionBSONCreatedAtField = "createdAt"
 )
 
 // MongoStore holds the mongodb database and implements Store interface.
@@ -103,6 +108,10 @@ func (s MongoStore) Create(
 		return nil, fmt.Errorf("creator is required")
 	}
 
+	createdAt := time.Now()
+
+	updatedAt := time.Now()
+
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONFileIDField,
@@ -130,6 +139,14 @@ func (s MongoStore) Create(
 		bson.E{
 			Key:   PermissionBSONCreatorField,
 			Value: creator,
+		},
+		bson.E{
+			Key:   PermissionBSONCreatedAtField,
+			Value: createdAt,
+		},
+		bson.E{
+			Key:   PermissionBSONUpdatedAtField,
+			Value: updatedAt,
 		},
 	}
 
