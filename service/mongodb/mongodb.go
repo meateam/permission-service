@@ -14,8 +14,8 @@ type BSON struct {
 	UserID    string             `bson:"userID,omitempty"`
 	Role      pb.Role            `bson:"role"`
 	Creator   string             `bson:"creator"`
-	UpdatedAt string             `bson:"updatedAt"`
-	CreatedAt string             `bson:"createdAt"`
+	UpdatedAt time.Time             `bson:"updatedAt"`
+	CreatedAt time.Time             `bson:"createdAt"`
 }
 
 // GetID returns the string value of the b.ID.
@@ -122,7 +122,7 @@ func (b BSON) GetUpdatedAt() string {
 	return b.UpdatedAt
 }
 
-func (b *BSON) SetUpdatedAt(updatedAt string) error {
+func (b *BSON) SetUpdatedAt(updatedAt time.Time) error {
 	if b == nil {
 		panic("b == nil")
 	}
@@ -139,7 +139,7 @@ func (b BSON) GetCreatedAt() string {
 	return b.CreatedAt
 }
 
-func (b *BSON) SetCreatedAt(createdAt string) error {
+func (b *BSON) SetCreatedAt(createdAt time.Time) error {
 	if b == nil {
 		panic("b == nil")
 	}

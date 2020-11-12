@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	pb "github.com/meateam/permission-service/proto"
 )
 
@@ -28,11 +30,11 @@ type Permission interface {
 
 	GetCreatedAt() string
 
-	SetCreatedAt(createdAt string) error
+	SetCreatedAt(createdAt time.Time) error
 
 	GetUpdatedAt() string
 
-	SetUpdatedAt(updatedAt string) error
+	SetUpdatedAt(updatedAt time.Time) error
 
 	MarshalProto(permission *pb.PermissionObject) error
 }
