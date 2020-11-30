@@ -13,7 +13,7 @@
 			"env": {
 				"PS_PORT": "8087",
 				"HOST_NAME": "permission-service",
-				"PS_MONGO_HOST": "mongodb://localhost:27017/permission",
+				"PS_MONGO_HOST": "mongodb://localhost:27017/devDB",
 				"PS_ELASTIC_APM_IGNORE_URLS": "/grpc.health.v1.Health/Check,/api/healthcheck",
 				"ELASTICSEARCH_URL": "http://localhost:9200",
 				"LOG_INDEX": "kdrive",

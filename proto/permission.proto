@@ -131,6 +131,10 @@ message GetUserPermissionsRequest {
 
 	// The number of documents per page.
 	int64 pageSize = 3;
+
+	// if true, return only permissions where the userID is not th same as creator.
+	// defaults to false
+	bool isShared = 4;
 }
 
 message GetUserPermissionsResponse {

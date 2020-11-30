@@ -200,12 +200,13 @@ func (s Service) GetUserPermissions(
 	userID := req.GetUserID()
 	pageNum := req.GetPageNum()
 	pageSize := req.GetPageSize()
+	isShared := req.GetIsShared()
 
 	if userID == "" {
 		return nil, fmt.Errorf("userID is required")
 	}
 
-	permissions, err := s.controller.GetUserPermissions(ctx, userID, pageNum, pageSize)
+	permissions, err := s.controller.GetUserPermissions(ctx, userID, pageNum, pageSize, isShared)
 	if err != nil {
 		return nil, err
 	}

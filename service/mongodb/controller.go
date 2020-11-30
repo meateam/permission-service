@@ -163,22 +163,35 @@ func (c Controller) GetFilePermissions(ctx context.Context,
 // otherwise returns nil and any error if occurred.
 func (c Controller) GetUserPermissions(
 	ctx context.Context,
-	userID string, pageNum int64, pageSize int64) (*pb.GetUserPermissionsResponse, error) {
+	userID string, pageNum int64, pageSize int64, isShared bool) (*pb.GetUserPermissionsResponse, error) {
 
-	filter := bson.D{
-		bson.E{
-			Key:   PermissionBSONUserIDField,
-			Value: userID,
-		},
+	var filter bson.D
+
+	filter = append(filter, bson.E{
+		Key:   PermissionBSONUserIDField,
+		Value: userID,
+	})
+
+	if isShared {
+		filter = append(filter, bson.E{
+			Key:   PermissionBSONCreatorField,
+			Value: bson.M{"$ne": userID},
+		})
 	}
 
 	// Check if one is negative and the other is not
 	if pageNum < 0 || pageSize < 0 {
 		return nil, fmt.Errorf("pageNum %d and pageSize %d must both be non-negative", pageNum, pageSize)
 	}
+	sort := bson.D{
+		bson.E{
+			Key:   MongoObjectIDField,
+			Value: 1,
+		},
+	}
 
 	// Get permissions by page, sorted by mongoID
-	pageRes, err := c.store.GetUserPermissionsByPage(ctx, pageNum, pageSize, bson.D{bson.E{Key: MongoObjectIDField, Value: 1}}, filter)
+	pageRes, err := c.store.GetUserPermissionsByPage(ctx, pageNum, pageSize, sort, filter)
 	if err != nil {
 		return nil, err
 	}
