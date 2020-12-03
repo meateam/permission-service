@@ -29,6 +29,8 @@ service Permission {
 
 	// GetPermission returns a permission of the user to a file.
 	rpc GetPermission(GetPermissionRequest) returns (PermissionObject) {}
+
+	rpc GetPermissionByMongoID(GetPermissionByMongoIDRequest) returns (PermissionObject) {}
 }
 
 message CreatePermissionRequest {
@@ -76,6 +78,10 @@ message PermissionObject {
 message GetPermissionRequest {
 	string fileID = 1;
 	string userID = 2;
+}
+
+message GetPermissionByMongoIDRequest {
+	string mongoID = 1;
 }
 
 message GetFilePermissionsRequest {
