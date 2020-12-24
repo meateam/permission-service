@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- FEAT([17](https://github.com/meateam/permission-service/pull/17)): add ci and test file
+
 ### Refactor
 
 - REFACTOR([95](https://github.com/meateam/drive-project/issues/96)): upgrade docker compose to v3 and use env_file
