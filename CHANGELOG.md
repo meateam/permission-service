@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- major: ([10](https://github.com/meateam/permission-service/pull/10)): added pagination, and appID in create
 - FEAT([17](https://github.com/meateam/permission-service/pull/17)): add ci and test file
 
 ### Refactor
