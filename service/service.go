@@ -43,6 +43,7 @@ func (s Service) CreatePermission(
 	role := req.GetRole()
 	creator := req.GetCreator()
 	override := req.GetOverride()
+	appID := req.GetAppID()
 
 	if userID == "" {
 		return nil, fmt.Errorf("userID is required")
@@ -60,7 +61,11 @@ func (s Service) CreatePermission(
 		return nil, fmt.Errorf("creator is required")
 	}
 
-	permission, err := s.controller.CreatePermission(ctx, fileID, userID, role, creator, override)
+	if appID == "" {
+		return nil, fmt.Errorf("appID is required")
+	}
+
+	permission, err := s.controller.CreatePermission(ctx, fileID, userID, role, creator, override, appID)
 	if err != nil {
 		return nil, err
 	}
@@ -201,12 +206,13 @@ func (s Service) GetUserPermissions(
 	pageNum := req.GetPageNum()
 	pageSize := req.GetPageSize()
 	isShared := req.GetIsShared()
+	appID := req.GetAppID()
 
 	if userID == "" {
 		return nil, fmt.Errorf("userID is required")
 	}
 
-	permissions, err := s.controller.GetUserPermissions(ctx, userID, pageNum, pageSize, isShared)
+	permissions, err := s.controller.GetUserPermissions(ctx, userID, pageNum, pageSize, isShared, appID)
 	if err != nil {
 		return nil, err
 	}

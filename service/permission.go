@@ -26,5 +26,9 @@ type Permission interface {
 
 	SetCreator(creator string) error
 
+	GetAppID() string
+
+	SetAppID(appID string) error
+
 	MarshalProto(permission *pb.PermissionObject) error
 }

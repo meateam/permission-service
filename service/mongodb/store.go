@@ -30,6 +30,9 @@ const (
 
 	// PermissionBSONCreatorField is the name of the creator field in BSON.
 	PermissionBSONCreatorField = "creator"
+
+	// PermissionBSONAppIDField is the name of the appID field in BSON.
+	PermissionBSONAppIDField = "appID"
 )
 
 // MongoStore holds the mongodb database and implements Store interface.
@@ -109,6 +112,11 @@ func (s MongoStore) Create(
 		return nil, fmt.Errorf("creator is required")
 	}
 
+	appID := permission.GetAppID()
+	if appID == "" {
+		return nil, fmt.Errorf("appID is required")
+	}
+
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONFileIDField,
@@ -136,6 +144,10 @@ func (s MongoStore) Create(
 		bson.E{
 			Key:   PermissionBSONCreatorField,
 			Value: creator,
+		},
+		bson.E{
+			Key:   PermissionBSONAppIDField,
+			Value: appID,
 		},
 	}
 

@@ -14,12 +14,13 @@ type Controller interface {
 		userID string,
 		role pb.Role,
 		creator string,
-		override bool) (Permission, error)
+		override bool,
+		appID string) (Permission, error)
 	DeletePermission(ctx context.Context, fileID string, userID string) (Permission, error)
 	GetFilePermissions(ctx context.Context, fileID string) ([]*pb.GetFilePermissionsResponse_UserRole, error)
 	GetByFileAndUser(ctx context.Context, fileID string, userID string) (Permission, error)
 	GetPermissionByMongoID(ctx context.Context, mongoID string) (Permission, error)
-	GetUserPermissions(ctx context.Context, userID string, pageNum int64, pageSize int64, isShared bool) (*pb.GetUserPermissionsResponse, error)
+	GetUserPermissions(ctx context.Context, userID string, pageNum int64, pageSize int64, isShared bool, appID string) (*pb.GetUserPermissionsResponse, error)
 	DeleteFilePermissions(ctx context.Context, fileID string) ([]*pb.PermissionObject, error)
 	HealthCheck(ctx context.Context) (bool, error)
 }

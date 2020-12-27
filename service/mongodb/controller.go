@@ -35,8 +35,9 @@ func (c Controller) CreatePermission(
 	userID string,
 	role pb.Role,
 	creator string,
-	override bool) (service.Permission, error) {
-	permission := &BSON{FileID: fileID, UserID: userID, Role: role, Creator: creator}
+	override bool,
+	appID string) (service.Permission, error) {
+	permission := &BSON{FileID: fileID, UserID: userID, Role: role, Creator: creator, AppID: appID}
 	createdPermission, err := c.store.Create(ctx, permission, override)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating permission: %v", err)
@@ -163,7 +164,7 @@ func (c Controller) GetFilePermissions(ctx context.Context,
 // otherwise returns nil and any error if occurred.
 func (c Controller) GetUserPermissions(
 	ctx context.Context,
-	userID string, pageNum int64, pageSize int64, isShared bool) (*pb.GetUserPermissionsResponse, error) {
+	userID string, pageNum int64, pageSize int64, isShared bool, appID string) (*pb.GetUserPermissionsResponse, error) {
 
 	var filter bson.D
 
@@ -176,6 +177,13 @@ func (c Controller) GetUserPermissions(
 		filter = append(filter, bson.E{
 			Key:   PermissionBSONCreatorField,
 			Value: bson.M{"$ne": userID},
+		})
+	}
+
+	if appID != "" {
+		filter = append(filter, bson.E{
+			Key:   PermissionBSONAppIDField,
+			Value: appID,
 		})
 	}
 

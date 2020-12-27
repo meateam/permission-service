@@ -14,6 +14,7 @@ type BSON struct {
 	UserID  string             `bson:"userID,omitempty"`
 	Role    pb.Role            `bson:"role"`
 	Creator string             `bson:"creator"`
+	AppID   string             `bson:"appID"`
 }
 
 // GetID returns the string value of the b.ID.
@@ -116,6 +117,25 @@ func (b *BSON) SetCreator(creator string) error {
 	return nil
 }
 
+// GetAppID returns b.AppID.
+func (b BSON) GetAppID() string {
+	return b.AppID
+}
+
+// SetAppID sets b.AppID to appID.
+func (b *BSON) SetAppID(appID string) error {
+	if b == nil {
+		panic("b == nil")
+	}
+
+	if appID == "" {
+		return fmt.Errorf("appID is required")
+	}
+
+	b.AppID = appID
+	return nil
+}
+
 // MarshalProto marshals b into a permission.
 func (b BSON) MarshalProto(permission *pb.PermissionObject) error {
 	permission.Id = b.GetID()
@@ -123,6 +143,7 @@ func (b BSON) MarshalProto(permission *pb.PermissionObject) error {
 	permission.UserID = b.GetUserID()
 	permission.Role = b.GetRole()
 	permission.Creator = b.GetCreator()
+	permission.AppID = b.GetAppID()
 
 	return nil
 }

@@ -49,6 +49,9 @@ message CreatePermissionRequest {
 
 	// Signifies wether or not to override the permission if already exists.
 	bool override = 5;
+
+	// The ID of the application which created the permission.
+	string appID = 6;
 }
 
 message DeletePermissionRequest {
@@ -74,6 +77,9 @@ message PermissionObject {
 
 	// The ID of the user that created the permission.
 	string creator = 5;
+
+	// The ID of the application which created the permission.
+	string appID = 6;
 }
 
 message GetPermissionRequest {
@@ -135,6 +141,10 @@ message GetUserPermissionsRequest {
 	// if true, return only permissions where the userID is not th same as creator.
 	// defaults to false
 	bool isShared = 4;
+
+	// The appID that the permissions requested belong to.
+	// Default - return from all apps.
+	string appID = 5;
 }
 
 message GetUserPermissionsResponse {
