@@ -22,6 +22,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/reflection"
 )
 
 const (
@@ -110,6 +111,9 @@ func NewServer(logger *logrus.Logger) *PermissionServer {
 	// Create a permission service and register it on the grpc server.
 	permissionService := service.NewService(controller, logger)
 	pb.RegisterPermissionServer(grpcServer, permissionService)
+
+	// TODO: REMOVE!
+	reflection.Register(grpcServer)
 
 	// Create a health server and register it on the grpc server.
 	healthServer := health.NewServer()

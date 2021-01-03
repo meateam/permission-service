@@ -3,6 +3,8 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
 
 	pb "github.com/meateam/permission-service/proto"
 	"github.com/meateam/permission-service/service"
@@ -166,6 +168,11 @@ func (c Controller) GetUserPermissions(
 	ctx context.Context,
 	userID string, pageNum int64, pageSize int64, isShared bool, appID string) (*pb.GetUserPermissionsResponse, error) {
 
+	// Check if one is negative and the other is not
+	if pageNum < 0 || pageSize < 0 {
+		return nil, fmt.Errorf("pageNum %d and pageSize %d must both be non-negative", pageNum, pageSize)
+	}
+
 	var filter bson.D
 
 	filter = append(filter, bson.E{
@@ -187,10 +194,6 @@ func (c Controller) GetUserPermissions(
 		})
 	}
 
-	// Check if one is negative and the other is not
-	if pageNum < 0 || pageSize < 0 {
-		return nil, fmt.Errorf("pageNum %d and pageSize %d must both be non-negative", pageNum, pageSize)
-	}
 	sort := bson.D{
 		bson.E{
 			Key:   MongoObjectIDField,
@@ -211,18 +214,78 @@ func (c Controller) GetUserPermissions(
 
 }
 
+// reformatFilePermissions receives an array of service.Permission and
+// asynchronously returns them as an array of *pb.GetUserPermissionsResponse_FileRole,
+// while keeping the order in which they were received
+
 func (c Controller) reformatFilePermissions(permissions []service.Permission) []*pb.GetUserPermissionsResponse_FileRole {
-	filePermissions := make([]*pb.GetUserPermissionsResponse_FileRole, 0, len(permissions))
+	start := time.Now().UnixNano()
+	filePermissions := make([]*pb.GetUserPermissionsResponse_FileRole, len(permissions), len(permissions))
+
+	var wg sync.WaitGroup
+	wg.Add(len(permissions))
+
+	// for i := 0; i < len(permissions); i++ {
+	// 	permission := permissions[i]
+	// 	go func(i int, permission service.Permission) {
+	// 		defer wg.Done()
+	// 		time.Sleep(100 * time.Nanosecond)
+	// 		filePermissions[i] = &pb.GetUserPermissionsResponse_FileRole{
+	// 			FileID:  permission.GetFileID(),
+	// 			Role:    permission.GetRole(),
+	// 			Creator: permission.GetCreator(),
+	// 		}
+	// 	}(i, permission)
+	// }
+	// wg.Wait()
+
+	// 10 Nano sleep:
+	// Finished for loop 885832 Async
+	// Finished for loop 121066 Sync
+
+	// 100 Nano sleep:
+	// Finished for loop 264884 Async
+	// Finished for loop 579209 Sync
+
+	// 13953001
+	// 10,322,789
+	// 1,117,611
+	// 159,598
 	for _, permission := range permissions {
+		// time.Sleep(100 * time.Nanosecond)
+		// start2 := time.Now().UnixNano()
 		filePermissions = append(filePermissions, &pb.GetUserPermissionsResponse_FileRole{
 			FileID:  permission.GetFileID(),
 			Role:    permission.GetRole(),
 			Creator: permission.GetCreator(),
 		})
+		// end2 := time.Now().UnixNano()
+		// fmt.Printf("Finished for loop %v\n", end2-start2)
 	}
+	end := time.Now().UnixNano()
+
+	fmt.Printf("Finished for loop %v\n", end-start)
 
 	return filePermissions
 }
+
+// func (c Controller) reformatFilePermissions(permissions []service.Permission) []*pb.GetUserPermissionsResponse_FileRole {
+// 	start := time.Now().UnixNano()
+// 	filePermissions := make([]*pb.GetUserPermissionsResponse_FileRole, len(permissions), len(permissions))
+
+// 	for _, permission := range permissions {
+// 		filePermissions = append(filePermissions, &pb.GetUserPermissionsResponse_FileRole{
+// 			FileID:  permission.GetFileID(),
+// 			Role:    permission.GetRole(),
+// 			Creator: permission.GetCreator(),
+// 		})
+// 	}
+// 	end := time.Now().UnixNano()
+
+// 	fmt.Printf("Finished for loop %v\n", end-start)
+
+// 	return filePermissions
+// }
 
 // DeleteFilePermissions deletes all permissions that exist for fileID and
 // returns a slice of Permissions that were deleted.
