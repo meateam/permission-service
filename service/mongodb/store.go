@@ -232,7 +232,8 @@ func (s MongoStore) GetAll(ctx context.Context, filter interface{}) ([]service.P
 
 // GetUserPermissionsByPage returns a slice of the permissions requested by the filter,
 // in the page they belong to by page number and page size.
-// sortBy is the field by which the sorting of the permissions will be committed, defaulting to mongoID.
+// sortBy is the field by which the sorting of the permissions will be committed,
+// defaulting to reverse mongoID.
 func (s MongoStore) GetUserPermissionsByPage(ctx context.Context, pn int64, ps int64, sortBy bson.D, filter interface{}) (*PagingRes, error) {
 	collection := s.DB.Collection(PermissionCollectionName)
 

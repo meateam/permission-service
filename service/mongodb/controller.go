@@ -192,14 +192,16 @@ func (c Controller) GetUserPermissions(
 		})
 	}
 
+	// Sort by decreasing mongoID order (large to small).
+	// This generally means - get last created permissions first.
 	sort := bson.D{
 		bson.E{
 			Key:   MongoObjectIDField,
-			Value: 1,
+			Value: -1,
 		},
 	}
 
-	// Get permissions by page, sorted by mongoID
+	// Get permissions by page, sorted by reverse mongoID
 	pageRes, err := c.store.GetUserPermissionsByPage(ctx, pageNum, pageSize, sort, filter)
 	if err != nil {
 		return nil, err
