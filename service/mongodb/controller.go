@@ -166,6 +166,11 @@ func (c Controller) GetUserPermissions(
 	ctx context.Context,
 	userID string, pageNum int64, pageSize int64, isShared bool, appID string) (*pb.GetUserPermissionsResponse, error) {
 
+	// Check if one is negative and the other is not
+	if pageNum < 0 || pageSize < 0 {
+		return nil, fmt.Errorf("pageNum %d and pageSize %d must both be non-negative", pageNum, pageSize)
+	}
+
 	var filter bson.D
 
 	filter = append(filter, bson.E{
@@ -187,10 +192,6 @@ func (c Controller) GetUserPermissions(
 		})
 	}
 
-	// Check if one is negative and the other is not
-	if pageNum < 0 || pageSize < 0 {
-		return nil, fmt.Errorf("pageNum %d and pageSize %d must both be non-negative", pageNum, pageSize)
-	}
 	sort := bson.D{
 		bson.E{
 			Key:   MongoObjectIDField,
@@ -211,6 +212,9 @@ func (c Controller) GetUserPermissions(
 
 }
 
+// reformatFilePermissions receives an array of service.Permission and
+// returns them as an array of *pb.GetUserPermissionsResponse_FileRole,
+// while keeping the order in which they were received
 func (c Controller) reformatFilePermissions(permissions []service.Permission) []*pb.GetUserPermissionsResponse_FileRole {
 	filePermissions := make([]*pb.GetUserPermissionsResponse_FileRole, 0, len(permissions))
 	for _, permission := range permissions {
