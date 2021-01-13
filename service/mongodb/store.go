@@ -30,11 +30,20 @@ const (
 
 	// PermissionBSONCreatorField is the name of the creator field in BSON.
 	PermissionBSONCreatorField = "creator"
+
+	// PermissionBSONAppIDField is the name of the appID field in BSON.
+	PermissionBSONAppIDField = "appID"
 )
 
 // MongoStore holds the mongodb database and implements Store interface.
 type MongoStore struct {
 	DB *mongo.Database
+}
+
+type PagingRes struct {
+	permissions []service.Permission
+	itemCount   int64
+	pageNum     int64
 }
 
 // newMongoStore returns a new store.
@@ -103,6 +112,11 @@ func (s MongoStore) Create(
 		return nil, fmt.Errorf("creator is required")
 	}
 
+	appID := permission.GetAppID()
+	if appID == "" {
+		return nil, fmt.Errorf("appID is required")
+	}
+
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONFileIDField,
@@ -130,6 +144,10 @@ func (s MongoStore) Create(
 		bson.E{
 			Key:   PermissionBSONCreatorField,
 			Value: creator,
+		},
+		bson.E{
+			Key:   PermissionBSONAppIDField,
+			Value: appID,
 		},
 	}
 
@@ -210,6 +228,47 @@ func (s MongoStore) GetAll(ctx context.Context, filter interface{}) ([]service.P
 	}
 
 	return permissions, nil
+}
+
+// GetUserPermissionsByPage returns a slice of the permissions requested by the filter,
+// in the page they belong to by page number and page size.
+// sortBy is the field by which the sorting of the permissions will be committed,
+// defaulting to reverse mongoID.
+func (s MongoStore) GetUserPermissionsByPage(ctx context.Context, pn int64, ps int64, sortBy bson.D, filter interface{}) (*PagingRes, error) {
+	collection := s.DB.Collection(PermissionCollectionName)
+
+	itemCount, err := collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	opts := options.Find().SetSort(sortBy).SetLimit(ps).SetSkip(pn * ps)
+
+	cur, err := collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	defer cur.Close(ctx)
+
+	permissions := []service.Permission{}
+	for cur.Next(ctx) {
+		permission := &BSON{}
+		err := cur.Decode(permission)
+		if err != nil {
+			return nil, err
+		}
+
+		permissions = append(permissions, permission)
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	var pr *PagingRes = &PagingRes{permissions: permissions, pageNum: pn, itemCount: itemCount}
+
+	return pr, nil
 }
 
 // Delete finds the first permission that matches filter and deletes it,
