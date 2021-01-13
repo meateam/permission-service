@@ -80,6 +80,12 @@ message PermissionObject {
 
 	// The ID of the application which created the permission.
 	string appID = 6;
+
+	// The unix time for when the permission was created.
+	int64 createdAt = 7;
+
+	// The unix time for when the permission was last updated.
+	int64 updatedAt = 8;
 }
 
 message GetPermissionRequest {

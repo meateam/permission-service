@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- minor: ([???](https://github.com/meateam/permission-service/pull/10)): added updatedAt and createdAt fields
+
 ## [v3.0.0] - 2021-01-13
 
 ### Added
