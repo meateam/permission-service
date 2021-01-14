@@ -193,8 +193,7 @@ func (c Controller) GetUserPermissions(
 		})
 	}
 
-	// Sort by decreasing mongoID order (large to small).
-	// This generally means - get last created permissions first.
+	// Sort by decreasing createdAt order (most recent to oldest).
 	sort := bson.D{
 		bson.E{
 			Key:   PermissionBSONUpdatedAtField,
