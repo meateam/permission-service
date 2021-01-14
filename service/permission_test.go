@@ -3,7 +3,6 @@ package service_test
 import (
 	"context"
 	"fmt"
-	"math"
 	"net"
 	"strings"
 	"testing"
