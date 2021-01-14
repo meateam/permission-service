@@ -54,7 +54,12 @@ pipeline {
       // run unit test using docker-compose with mongo 
       stage('build dockerfile of tests') {
           steps {
-            sh 'docker-compose -f "docker-compose.test.yml" up -d --build'
+            configFileProvider([configFile(fileId:'d9e51ae8-06c8-4dc4-ba0d-d4794033bddd',variable:'API_CONFIG_FILE')]){
+              sh "cp ${env.API_CONFIG_FILE} ./kdrive.env" 
+              sh "cat kdrive.env"
+              sh "docker-compose -f docker-compose.test.yml up  --build --force-recreate --renew-anon-volumes --exit-code-from permission-service_test" 
+              sh "rm kdrive.env" 
+            } 
           }
           post {
             always {
