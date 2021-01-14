@@ -32,7 +32,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "test",
-			"program": "${workspaceFolder}"
+			"program": "${workspaceFolder}/service"
 		}
 	]
 }
