@@ -1,6 +1,6 @@
 version: '3'
 services:
-  permission-service:
+  permission-service_test:
     image: permission-service
     build:
         context: .
