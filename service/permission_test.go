@@ -141,11 +141,6 @@ func Test_CreatePermission(t *testing.T) {
 
 		})
 	}
-
-	got := math.Abs(-1)
-	if got != 1 {
-		t.Errorf("Abs(-1) = %g; want 1", got)
-	}
 }
 
 func Test_GetFilePermissions(t *testing.T) {
@@ -218,11 +213,6 @@ func Test_GetFilePermissions(t *testing.T) {
 				)
 			}
 		})
-	}
-
-	got := math.Abs(-1)
-	if got != 1 {
-		t.Errorf("Abs(-1) = %g; want 1", got)
 	}
 }
 

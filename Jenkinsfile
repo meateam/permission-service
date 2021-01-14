@@ -51,22 +51,16 @@ pipeline {
            }
          } 
       }
-      // build image for unit test
+      // run unit test using docker-compose with mongo 
       stage('build dockerfile of tests') {
-        steps {
-          sh "docker build -t unittest -f test.Dockerfile ." 
-        }  
-      }
-      // run image of unit test
-      stage('run unit tests') {   
-        steps {
-          sh "docker run unittest"  
-        }
-        post {
-          always {
-            discordSend description: '**service**: '+ env.GIT_REPO_NAME + '\n **Build**:' + " " + env.BUILD_NUMBER + '\n **Branch**:' + " " + env.GIT_BRANCH + '\n **Status**:' + " " +  currentBuild.result + '\n \n \n **Commit ID**:'+ " " + env.GIT_SHORT_COMMIT + '\n **commit massage**:' + " " + env.GIT_COMMIT_MSG + '\n **commit email**:' + " " + env.GIT_COMMITTER_EMAIL, footer: '', image: '', link: 'http://jnk-devops-ci-cd.northeurope.cloudapp.azure.com/blue/organizations/jenkins/'+env.JOB_FOR_URL+'/detail/'+env.BRANCH_FOR_URL+'/'+env.BUILD_NUMBER+'/pipeline', result: currentBuild.result, thumbnail: '', title: 'link to logs of unit test', webhookURL: env.discord      
+          steps {
+            sh 'docker-compose -f docker-compose.test.yml up --exit-code-from permission_service_test'
           }
-        }
+          post {
+            always {
+              discordSend description: '**service**: '+ env.GIT_REPO_NAME + '\n **Build**:' + " " + env.BUILD_NUMBER + '\n **Branch**:' + " " + env.GIT_BRANCH + '\n **Status**:' + " " +  currentBuild.result + '\n \n \n **Commit ID**:'+ " " + env.GIT_SHORT_COMMIT + '\n **commit massage**:' + " " + env.GIT_COMMIT_MSG + '\n **commit email**:' + " " + env.GIT_COMMITTER_EMAIL, footer: '', image: '', link: 'http://jnk-devops-ci-cd.northeurope.cloudapp.azure.com/blue/organizations/jenkins/'+env.JOB_FOR_URL+'/detail/'+env.BRANCH_FOR_URL+'/'+env.BUILD_NUMBER+'/pipeline', result: currentBuild.result, thumbnail: '', title: 'link to logs of unit test', webhookURL: env.discord    
+            }
+         }
       }
       // login to acr when pushed to branch master or develop 
       stage('login to azure container registry') {
