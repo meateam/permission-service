@@ -11,7 +11,7 @@ pipeline {
       spec: 
           containers: 
             - name: dind-slave
-              image: docker:dind 
+              image: aymdev/dind-compose
               resources: 
                   requests: 
                       cpu: 20m 
