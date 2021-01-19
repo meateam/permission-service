@@ -35,5 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FEAT([9](https://github.com/meateam/permission-service/pull/9)): RPC method GetPermissionByMongoID
 
 [unreleased]: https://github.com/meateam/permission-service/compare/master...develop
+[v3.1.1]: https://github.com/meateam/permission-service/compare/v3.0.0...v3.1.1
 [v3.0.0]: https://github.com/meateam/permission-service/compare/v2.0.0...v3.0.0
 [v2.0.0]: https://github.com/meateam/permission-service/compare/v1.3...v2.0.0
