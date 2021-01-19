@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1.1] - 2021-01-19
+
 ### Fixed
 
 - hotfix: ([21](https://github.com/meateam/permission-service/pull/21)): changed updated_at, created_at to updatedAt, createdAt
