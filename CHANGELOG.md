@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- hotfix: ([21](https://github.com/meateam/permission-service/pull/21)): changed updated_at, created_at to updatedAt, createdAt
+
+### Added
+
+- minor: ([21](https://github.com/meateam/permission-service/pull/21)): added updatedAt and createdAt fields, pagination sorting defaults to updated_at field
+
 ## [v3.0.0] - 2021-01-13
 
 ### Added
