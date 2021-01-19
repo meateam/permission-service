@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	pb "github.com/meateam/permission-service/proto"
 )
 
@@ -29,6 +31,10 @@ type Permission interface {
 	GetAppID() string
 
 	SetAppID(appID string) error
+
+	GetCreatedAt() time.Time
+
+	GetUpdatedAt() time.Time
 
 	MarshalProto(permission *pb.PermissionObject) error
 }

@@ -3,6 +3,7 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"time"
 
 	pb "github.com/meateam/permission-service/proto"
 	"github.com/meateam/permission-service/service"
@@ -37,7 +38,7 @@ func (c Controller) CreatePermission(
 	creator string,
 	override bool,
 	appID string) (service.Permission, error) {
-	permission := &BSON{FileID: fileID, UserID: userID, Role: role, Creator: creator, AppID: appID}
+	permission := &BSON{FileID: fileID, UserID: userID, Role: role, Creator: creator, AppID: appID, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	createdPermission, err := c.store.Create(ctx, permission, override)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating permission: %v", err)
@@ -192,11 +193,10 @@ func (c Controller) GetUserPermissions(
 		})
 	}
 
-	// Sort by decreasing mongoID order (large to small).
-	// This generally means - get last created permissions first.
+	// Sort by decreasing createdAt order (most recent to oldest).
 	sort := bson.D{
 		bson.E{
-			Key:   MongoObjectIDField,
+			Key:   PermissionBSONUpdatedAtField,
 			Value: -1,
 		},
 	}

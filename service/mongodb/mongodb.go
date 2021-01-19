@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"fmt"
+	"time"
 
 	pb "github.com/meateam/permission-service/proto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -9,12 +10,14 @@ import (
 
 // BSON is the structure that represents a permission as it's stored.
 type BSON struct {
-	ID      primitive.ObjectID `bson:"_id,omitempty"`
-	FileID  string             `bson:"fileID,omitempty"`
-	UserID  string             `bson:"userID,omitempty"`
-	Role    pb.Role            `bson:"role"`
-	Creator string             `bson:"creator"`
-	AppID   string             `bson:"appID"`
+	ID        primitive.ObjectID `bson:"_id,omitempty"`
+	FileID    string             `bson:"fileID,omitempty"`
+	UserID    string             `bson:"userID,omitempty"`
+	Role      pb.Role            `bson:"role"`
+	Creator   string             `bson:"creator"`
+	AppID     string             `bson:"appID"`
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt,omitempty"`
+	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt,omitempty"`
 }
 
 // GetID returns the string value of the b.ID.
@@ -136,6 +139,16 @@ func (b *BSON) SetAppID(appID string) error {
 	return nil
 }
 
+// GetCreatedAt returns b.CreatedAt.
+func (b BSON) GetCreatedAt() time.Time {
+	return b.CreatedAt
+}
+
+// GetUpdatedAt returns b.UpdatedAt.
+func (b BSON) GetUpdatedAt() time.Time {
+	return b.UpdatedAt
+}
+
 // MarshalProto marshals b into a permission.
 func (b BSON) MarshalProto(permission *pb.PermissionObject) error {
 	permission.Id = b.GetID()
@@ -144,6 +157,8 @@ func (b BSON) MarshalProto(permission *pb.PermissionObject) error {
 	permission.Role = b.GetRole()
 	permission.Creator = b.GetCreator()
 	permission.AppID = b.GetAppID()
+	permission.CreatedAt = b.GetCreatedAt().Unix()
+	permission.UpdatedAt = b.GetUpdatedAt().Unix()
 
 	return nil
 }

@@ -33,6 +33,12 @@ const (
 
 	// PermissionBSONAppIDField is the name of the appID field in BSON.
 	PermissionBSONAppIDField = "appID"
+
+	// PermissionBSONCreatedAtField is the name of the createdAt field in BSON.
+	PermissionBSONCreatedAtField = "createdAt"
+
+	// PermissionBSONUpdatedAtField is the name of the updatedAt field in BSON.
+	PermissionBSONUpdatedAtField = "updatedAt"
 )
 
 // MongoStore holds the mongodb database and implements Store interface.
@@ -40,6 +46,7 @@ type MongoStore struct {
 	DB *mongo.Database
 }
 
+// PagingRes is the struct of the result from the pagination requests
 type PagingRes struct {
 	permissions []service.Permission
 	itemCount   int64
@@ -117,6 +124,16 @@ func (s MongoStore) Create(
 		return nil, fmt.Errorf("appID is required")
 	}
 
+	createdAt := permission.GetCreatedAt()
+	if appID == "" {
+		return nil, fmt.Errorf("current time could not be obtained")
+	}
+
+	updatedAt := permission.GetUpdatedAt()
+	if appID == "" {
+		return nil, fmt.Errorf("current time could not be obtained")
+	}
+
 	filter := bson.D{
 		bson.E{
 			Key:   PermissionBSONFileIDField,
@@ -126,6 +143,15 @@ func (s MongoStore) Create(
 			Key:   PermissionBSONUserIDField,
 			Value: userID,
 		},
+	}
+
+	// Check existance of the permission. If the error received is not `404` then abort.
+	// In case the permission exists, do not update createdAt.
+	existingPermission, existingPermissionErr := s.Get(ctx, filter)
+	if existingPermissionErr != nil && existingPermissionErr != mongo.ErrNoDocuments {
+		return nil, existingPermissionErr
+	} else if existingPermissionErr == nil {
+		createdAt = existingPermission.GetCreatedAt()
 	}
 
 	newPermission := bson.D{
@@ -149,6 +175,14 @@ func (s MongoStore) Create(
 			Key:   PermissionBSONAppIDField,
 			Value: appID,
 		},
+		bson.E{
+			Key:   PermissionBSONCreatedAtField,
+			Value: createdAt,
+		},
+		bson.E{
+			Key:   PermissionBSONUpdatedAtField,
+			Value: updatedAt,
+		},
 	}
 
 	update := bson.D{
@@ -158,16 +192,9 @@ func (s MongoStore) Create(
 		},
 	}
 
-	// In case override is false, check if there is a permission, and if there is one, return it.
-	if !override {
-		existingPermission, err := s.Get(ctx, filter)
-		if err != nil && err != mongo.ErrNoDocuments {
-			return nil, err
-		}
-
-		if err == nil {
-			return existingPermission, nil
-		}
+	// In case override is false, check if there is a permission, and if there is one - return it.
+	if !override && existingPermissionErr == nil {
+		return existingPermission, nil
 	}
 
 	// If override is true, or false and there is no permission existing,
@@ -192,7 +219,8 @@ func (s MongoStore) Get(ctx context.Context, filter interface{}) (service.Permis
 	collection := s.DB.Collection(PermissionCollectionName)
 
 	permission := &BSON{}
-	err := collection.FindOne(ctx, filter).Decode(permission)
+	foundPerm := collection.FindOne(ctx, filter)
+	err := foundPerm.Decode(permission)
 	if err != nil {
 		return nil, err
 	}
