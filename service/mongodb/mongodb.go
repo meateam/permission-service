@@ -16,8 +16,8 @@ type BSON struct {
 	Role      pb.Role            `bson:"role"`
 	Creator   string             `bson:"creator"`
 	AppID     string             `bson:"appID"`
-	CreatedAt time.Time          `bson:"created_at" json:"created_at,omitempty"`
-	UpdatedAt time.Time          `bson:"updated_at" json:"updated_at,omitempty"`
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt,omitempty"`
+	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt,omitempty"`
 }
 
 // GetID returns the string value of the b.ID.

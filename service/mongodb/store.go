@@ -34,11 +34,11 @@ const (
 	// PermissionBSONAppIDField is the name of the appID field in BSON.
 	PermissionBSONAppIDField = "appID"
 
-	// PermissionBSONCreatedAtField is the name of the created_at field in BSON.
-	PermissionBSONCreatedAtField = "created_at"
+	// PermissionBSONCreatedAtField is the name of the createdAt field in BSON.
+	PermissionBSONCreatedAtField = "createdAt"
 
-	// PermissionBSONUpdatedAtField is the name of the updated_at field in BSON.
-	PermissionBSONUpdatedAtField = "updated_at"
+	// PermissionBSONUpdatedAtField is the name of the updatedAt field in BSON.
+	PermissionBSONUpdatedAtField = "updatedAt"
 )
 
 // MongoStore holds the mongodb database and implements Store interface.
