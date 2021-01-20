@@ -30,6 +30,7 @@ service Permission {
 	// GetPermission returns a permission of the user to a file.
 	rpc GetPermission(GetPermissionRequest) returns (PermissionObject) {}
 
+	// GetPermission returns a permission of by its mongoID.
 	rpc GetPermissionByMongoID(GetPermissionByMongoIDRequest) returns (PermissionObject) {}
 }
 
@@ -48,6 +49,9 @@ message CreatePermissionRequest {
 
 	// Signifies wether or not to override the permission if already exists.
 	bool override = 5;
+
+	// The ID of the application which created the permission.
+	string appID = 6;
 }
 
 message DeletePermissionRequest {
@@ -73,6 +77,15 @@ message PermissionObject {
 
 	// The ID of the user that created the permission.
 	string creator = 5;
+
+	// The ID of the application which created the permission.
+	string appID = 6;
+
+	// The unix time for when the permission was created.
+	int64 createdAt = 7;
+
+	// The unix time for when the permission was last updated.
+	int64 updatedAt = 8;
 }
 
 message GetPermissionRequest {
@@ -124,6 +137,20 @@ message IsPermittedResponse {
 message GetUserPermissionsRequest {
 	// The ID of the user to get its permissions.
 	string userID = 1;
+
+	// The page number requested. 
+	int64 pageNum = 2;
+
+	// The number of documents per page.
+	int64 pageSize = 3;
+
+	// if true, return only permissions where the userID is not th same as creator.
+	// defaults to false
+	bool isShared = 4;
+
+	// The appID that the permissions requested belong to.
+	// Default - return from all apps.
+	string appID = 5;
 }
 
 message GetUserPermissionsResponse {
@@ -141,6 +168,12 @@ message GetUserPermissionsResponse {
 
 	// Array of files and their role.
 	repeated FileRole permissions = 1;
+
+	// the number of items found as a result.
+	int64 itemCount = 2;
+
+	// The page number requested.
+	int64 pageNum = 3;
 }
 
 message DeleteFilePermissionsRequest {
