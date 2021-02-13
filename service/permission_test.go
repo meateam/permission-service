@@ -129,7 +129,7 @@ func Test_CreatePermission(t *testing.T) {
 
 			// Unanticipated error - isn't related to tt.wantErr
 			if err != nil {
-				t.Fatalf("DownloadService.Download() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("PermissionService.CreatePermission() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			if !comperePermissionObject(permissionObject, tt.args.req) {
@@ -203,12 +203,12 @@ func Test_GetFilePermissions(t *testing.T) {
 
 			// Unanticipated error - isn't related to tt.wantErr
 			if err != nil {
-				t.Fatalf("DownloadService.Download() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("PermissionService.GetFilePermissions() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			if !compereFilePermissions(permissionObject, tt.args.req.FileID) {
 				t.Errorf(
-					"PermissionService.CreatePermission() Fails to create permission, wantErr %v", tt.wantErr,
+					"PermissionService.GetFilePermissions() Fails to create permission, wantErr %v", tt.wantErr,
 				)
 			}
 		})
