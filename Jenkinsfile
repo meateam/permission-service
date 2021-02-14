@@ -11,7 +11,7 @@ pipeline {
       spec: 
           containers: 
             - name: dind-slave
-              image: docker:dind 
+              image: aymdev/dind-compose
               resources: 
                   requests: 
                       cpu: 20m 
@@ -51,22 +51,21 @@ pipeline {
            }
          } 
       }
-      // build image for unit test
+      // run unit test using docker-compose with mongo 
       stage('build dockerfile of tests') {
-        steps {
-          sh "docker build -t unittest -f test.Dockerfile ." 
-        }  
-      }
-      // run image of unit test
-      stage('run unit tests') {   
-        steps {
-          sh "docker run unittest"  
-        }
-        post {
-          always {
-            discordSend description: '**service**: '+ env.GIT_REPO_NAME + '\n **Build**:' + " " + env.BUILD_NUMBER + '\n **Branch**:' + " " + env.GIT_BRANCH + '\n **Status**:' + " " +  currentBuild.result + '\n \n \n **Commit ID**:'+ " " + env.GIT_SHORT_COMMIT + '\n **commit massage**:' + " " + env.GIT_COMMIT_MSG + '\n **commit email**:' + " " + env.GIT_COMMITTER_EMAIL, footer: '', image: '', link: 'http://jnk-devops-ci-cd.northeurope.cloudapp.azure.com/blue/organizations/jenkins/'+env.JOB_FOR_URL+'/detail/'+env.BRANCH_FOR_URL+'/'+env.BUILD_NUMBER+'/pipeline', result: currentBuild.result, thumbnail: '', title: 'link to logs of unit test', webhookURL: env.discord      
+          steps {
+            configFileProvider([configFile(fileId:'d9e51ae8-06c8-4dc4-ba0d-d4794033bddd',variable:'API_CONFIG_FILE')]){
+              sh "cp ${env.API_CONFIG_FILE} ./kdrive.env" 
+              sh "cat kdrive.env"
+              sh "docker-compose -f docker-compose.test.yml up  --build --force-recreate --renew-anon-volumes --exit-code-from permission-service_test" 
+              sh "rm kdrive.env" 
+            } 
           }
-        }
+          post {
+            always {
+              discordSend description: '**service**: '+ env.GIT_REPO_NAME + '\n **Build**:' + " " + env.BUILD_NUMBER + '\n **Branch**:' + " " + env.GIT_BRANCH + '\n **Status**:' + " " +  currentBuild.result + '\n \n \n **Commit ID**:'+ " " + env.GIT_SHORT_COMMIT + '\n **commit massage**:' + " " + env.GIT_COMMIT_MSG + '\n **commit email**:' + " " + env.GIT_COMMITTER_EMAIL, footer: '', image: '', link: 'http://jnk-devops-ci-cd.northeurope.cloudapp.azure.com/blue/organizations/jenkins/'+env.JOB_FOR_URL+'/detail/'+env.BRANCH_FOR_URL+'/'+env.BUILD_NUMBER+'/pipeline', result: currentBuild.result, thumbnail: '', title: 'link to logs of unit test', webhookURL: env.discord    
+            }
+         }
       }
       // login to acr when pushed to branch master or develop 
       stage('login to azure container registry') {
